@@ -1,10 +1,12 @@
 .venv
 .env
 .db.sqlite3
+*db.sqlite3
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.log
 *.pot
-
+Draft01_Tech Assessment_  AI Engineer Intern - AI_ML_Gen AI Application.md
+INSTRUCTION.md
