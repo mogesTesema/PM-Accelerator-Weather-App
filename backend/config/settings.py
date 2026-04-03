@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "corsheaders",
+    "drf_spectacular",
     # Local apps
     "core",
     "weather",
@@ -131,6 +132,17 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ],
     "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# ──────────────────────────────────────────────
+# drf-spectacular (Swagger / OpenAPI 3.0)
+# ──────────────────────────────────────────────
+SPECTACULAR_SETTINGS = {
+    "TITLE": "PM Accelerator Weather API",
+    "DESCRIPTION": "AI-powered weather intelligence platform with CRUD, forecast, enrichment, export, and agent query endpoints.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # ──────────────────────────────────────────────
@@ -148,3 +160,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
+STADIA_MAPS_API_KEY = os.getenv("STADIA_MAPS_API_KEY", "")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+GITHUB_OPENAI_API_TOKEN = os.getenv("GITHUB_OPENAI__API_TOKEN", "")
+GITHUB_OPENAI_BASE_URL = os.getenv("GITHUB_OPENAI_BASE_URL", "https://models.inference.ai.azure.com")

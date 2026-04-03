@@ -21,6 +21,45 @@ def export_json(records: list[dict]) -> str:
     return json.dumps(records, indent=2, default=str)
 
 
+def export_xml(records: list[dict]) -> str:
+    """Export weather records as an XML string."""
+    import xml.etree.ElementTree as ET
+    
+    root = ET.Element("WeatherRecords")
+    for record in records:
+        record_elem = ET.SubElement(root, "WeatherRecord")
+        for key, value in record.items():
+            child = ET.SubElement(record_elem, key)
+            child.text = str(value) if value is not None else ""
+            
+    # Pretty print if possible, else return string
+    import xml.dom.minidom
+    xmlstr = xml.dom.minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
+    return xmlstr
+
+
+def export_md(records: list[dict]) -> str:
+    """Export weather records as a Markdown string (table format)."""
+    if not records:
+        return "# Weather Data Export\n\nNo records found."
+        
+    lines = ["# Weather Data Export\n"]
+    
+    # Extract headers
+    headers = list(records[0].keys())
+    
+    # Create Markdown table header and separator
+    lines.append("| " + " | ".join(headers) + " |")
+    lines.append("|" + "|".join(["---"] * len(headers)) + "|")
+    
+    # Add rows
+    for record in records:
+        row = [str(record.get(h, "")) for h in headers]
+        lines.append("| " + " | ".join(row) + " |")
+        
+    return "\n".join(lines)
+
+
 def export_csv(records: list[dict]) -> str:
     """Export weather records as a CSV string."""
     if not records:

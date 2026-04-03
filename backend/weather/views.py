@@ -9,6 +9,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiTypes
+
 from .models import Location, WeatherRecord
 from .serializers import (
     LocationSerializer,
@@ -41,6 +43,23 @@ class WeatherRecordViewSet(viewsets.ModelViewSet):
 # ──────────────────────────────────────────────
 # CREATE weather from location query + date range
 # ──────────────────────────────────────────────
+@extend_schema(
+    summary="Create Weather Record",
+    description="Accepts a location query and date range. Resolves the location natively or via fuzzy matching, fetches real-time weather from OpenWeatherMap, stores the record in the database, and returns the result.",
+    request=WeatherCreateSerializer,
+    responses={201: WeatherRecordSerializer},
+    examples=[
+        OpenApiExample(
+            "Valid Request",
+            value={
+                "location_query": "London",
+                "date_start": "2026-04-01",
+                "date_end": "2026-04-05",
+            },
+            request_only=True,
+        )
+    ]
+)
 @api_view(["POST"])
 def create_weather(request):
     """
@@ -114,6 +133,16 @@ def create_weather(request):
 # ──────────────────────────────────────────────
 # 5-Day Forecast
 # ──────────────────────────────────────────────
+@extend_schema(
+    summary="Get 5-Day Forecast",
+    description="Retrieve a 5-day / 3-hour forecast either by an existing `location_id` in the database, or raw `lat` & `lon` coordinates.",
+    parameters=[
+        OpenApiParameter(name="location_id", description="ID of a stored Location", required=False, type=OpenApiTypes.INT),
+        OpenApiParameter(name="lat", description="Latitude", required=False, type=OpenApiTypes.FLOAT),
+        OpenApiParameter(name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT),
+    ],
+    responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 def forecast_view(request):
     """
@@ -160,6 +189,14 @@ def forecast_view(request):
 # ──────────────────────────────────────────────
 # Enrichment (YouTube + Google Maps)
 # ──────────────────────────────────────────────
+@extend_schema(
+    summary="Get Location Enrichment",
+    description="Retrieve YouTube travel/weather videos and Google/Stadia Maps data for a stored location.",
+    parameters=[
+        OpenApiParameter(name="location_id", description="ID of a stored Location", required=True, type=OpenApiTypes.INT),
+    ],
+    responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 def enrichment_view(request):
     """
@@ -196,10 +233,21 @@ def enrichment_view(request):
 # ──────────────────────────────────────────────
 # Data Export
 # ──────────────────────────────────────────────
+@extend_schema(
+    summary="Export Weather Data",
+    description="Export weather records in various formats (json, csv, pdf, xml, md). Optionally filter by location_id.",
+    parameters=[
+        OpenApiParameter(name="export_format", description="Format to export (json, csv, pdf, xml, md)", required=False, type=OpenApiTypes.STR),
+        OpenApiParameter(name="location_id", description="Optional Location ID to filter by", required=False, type=OpenApiTypes.INT),
+    ],
+    responses={
+        200: OpenApiTypes.BINARY
+    }
+)
 @api_view(["GET"])
 def export_view(request):
     """
-    GET /api/weather/export/?export_format=json|csv|pdf[&location_id=...]
+    GET /api/weather/export/?export_format=json|csv|pdf|xml|md[&location_id=...]
     Download weather data in the requested format.
     """
     fmt = request.query_params.get("export_format", "json").lower()
@@ -223,6 +271,18 @@ def export_view(request):
         response["Content-Disposition"] = 'attachment; filename="weather_data.pdf"'
         return response
 
+    elif fmt == "xml":
+        content = exports.export_xml(records)
+        response = HttpResponse(content, content_type="application/xml")
+        response["Content-Disposition"] = 'attachment; filename="weather_data.xml"'
+        return response
+
+    elif fmt == "md":
+        content = exports.export_md(records)
+        response = HttpResponse(content, content_type="text/markdown")
+        response["Content-Disposition"] = 'attachment; filename="weather_data.md"'
+        return response
+
     else:  # Default to JSON
         content = exports.export_json(records)
         response = HttpResponse(content, content_type="application/json")
@@ -233,6 +293,19 @@ def export_view(request):
 # ──────────────────────────────────────────────
 # Agent Query
 # ──────────────────────────────────────────────
+@extend_schema(
+    summary="AI Agent Query",
+    description="Send a natural language message to the AI orchestrator to autonomously retrieve weather, forecasts, or YouTube videos.",
+    request={"application/json": {"type": "object", "properties": {"message": {"type": "string"}}}},
+    examples=[
+        OpenApiExample(
+            "Valid Request",
+            value={"message": "What is the weather in Addis Ababa right now?"},
+            request_only=True,
+        )
+    ],
+    responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["POST"])
 def agent_query_view(request):
     """
