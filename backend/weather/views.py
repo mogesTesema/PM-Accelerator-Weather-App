@@ -135,8 +135,9 @@ def create_weather(request):
 # ──────────────────────────────────────────────
 @extend_schema(
     summary="Get 5-Day Forecast",
-    description="Retrieve a 5-day / 3-hour forecast either by an existing `location_id` in the database, or raw `lat` & `lon` coordinates.",
+    description="Retrieve a 5-day / 3-hour forecast either by a full `location_query`, existing `location_id` in the database, or raw `lat` & `lon` coordinates.",
     parameters=[
+        OpenApiParameter(name="location_query", description="City name, zip code, landmark, or coordinates", required=False, type=OpenApiTypes.STR),
         OpenApiParameter(name="location_id", description="ID of a stored Location", required=False, type=OpenApiTypes.INT),
         OpenApiParameter(name="lat", description="Latitude", required=False, type=OpenApiTypes.FLOAT),
         OpenApiParameter(name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT),
@@ -146,14 +147,25 @@ def create_weather(request):
 @api_view(["GET"])
 def forecast_view(request):
     """
-    GET /api/weather/forecast/?lat=...&lon=...
-    or GET /api/weather/forecast/?location_id=...
+    GET /api/weather/forecast/?location_query=... | location_id=... | lat=...&lon=...
     """
+    location_query = request.query_params.get("location_query")
     location_id = request.query_params.get("location_id")
     lat = request.query_params.get("lat")
     lon = request.query_params.get("lon")
 
-    if location_id:
+    if location_query:
+        geo = geocoding.resolve_location(location_query)
+        if not geo:
+            geo = geocoding.fuzzy_search(location_query)
+            
+        if not geo:
+            return Response(
+                {"error": True, "detail": f"Could not resolve location: '{location_query}'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        lat, lon = geo["lat"], geo["lon"]
+    elif location_id:
         try:
             loc = Location.objects.get(pk=location_id)
             lat, lon = loc.latitude, loc.longitude
@@ -172,7 +184,7 @@ def forecast_view(request):
             )
     else:
         return Response(
-            {"error": True, "detail": "Provide location_id or lat & lon."},
+            {"error": True, "detail": "Provide location_query, location_id, or lat & lon."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 

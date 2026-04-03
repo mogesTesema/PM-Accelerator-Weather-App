@@ -4,13 +4,27 @@ and Pinecone for fuzzy/landmark matching.
 """
 
 import logging
-
+import re
 import requests
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 LOCATIONIQ_BASE_URL = "https://us1.locationiq.com/v1"
+
+def _is_probable_zip_code(query: str) -> bool:
+    """Return True if query looks like a postal/zip code."""
+    query = query.strip()
+    # US Zip code (5 digits or 5-4)
+    if re.match(r"^\d{5}(?:-\d{4})?$", query):
+        return True
+    # UK Postal Code (approximate e.g. SW1A 1AA)
+    if re.match(r"^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$", query, re.IGNORECASE):
+        return True
+    # Canada Postal Code (e.g. K1A 0B1)
+    if re.match(r"^[A-Z]\d[A-Z] ?\d[A-Z]\d$", query, re.IGNORECASE):
+        return True
+    return False
 
 
 def resolve_location(query: str) -> dict | None:
@@ -25,14 +39,21 @@ def resolve_location(query: str) -> dict | None:
         return None
 
     try:
+        # Determine if we should do a precise postalcode search or a generic search
+        params = {
+            "key": api_key,
+            "format": "json",
+            "limit": 1,
+        }
+        
+        if _is_probable_zip_code(query):
+            params["postalcode"] = query.strip()
+        else:
+            params["q"] = query
+
         response = requests.get(
             f"{LOCATIONIQ_BASE_URL}/search",
-            params={
-                "key": api_key,
-                "q": query,
-                "format": "json",
-                "limit": 1,
-            },
+            params=params,
             timeout=10,
         )
         response.raise_for_status()

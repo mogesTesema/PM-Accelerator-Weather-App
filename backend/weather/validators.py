@@ -16,8 +16,8 @@ def validate_date_range(date_start, date_end):
             {"date_range": "Date range cannot exceed 365 days."}
         )
 
-    max_future = timezone.now().date() + timedelta(days=16)
+    max_future = timezone.now().date() + timedelta(days=5)
     if date_end > max_future:
         raise serializers.ValidationError(
-            {"date_range": "date_end cannot be more than 16 days in the future."}
+            {"date_range": "date_end cannot be more than 5 days in the future."}
         )
