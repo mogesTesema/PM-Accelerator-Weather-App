@@ -53,6 +53,7 @@ class TestClassifyType:
 class TestResolveLocation:
 
     @patch("weather.services.geocoding.requests.get")
+    @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
     def test_success(self, mock_get):
         mock_get.return_value = MagicMock(
             status_code=200,
@@ -76,6 +77,7 @@ class TestResolveLocation:
         assert result["name"] == "London, UK"
 
     @patch("weather.services.geocoding.requests.get")
+    @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
     def test_zip_uses_postalcode_param(self, mock_get):
         mock_get.return_value = MagicMock(
             status_code=200,
@@ -213,6 +215,7 @@ class TestYouTubeService:
         assert result == []
 
     @patch("weather.services.youtube.requests.get")
+    @patch("weather.services.youtube.settings.YOUTUBE_API_KEY", "fake-key")
     def test_success(self, mock_get):
         mock_get.return_value = MagicMock(
             status_code=200,
