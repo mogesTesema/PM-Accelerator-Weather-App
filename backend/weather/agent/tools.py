@@ -3,8 +3,8 @@ Tool functions for the weather agent.
 The agent calls these to interact with services and the database.
 """
 
-from weather.models import Location, WeatherRecord
-from weather.services import geocoding, openweather, youtube, google_maps
+from weather.models import WeatherRecord
+from weather.services import geocoding, openweather, youtube
 
 
 def get_weather(location_query: str) -> dict:

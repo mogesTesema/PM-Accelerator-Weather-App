@@ -193,7 +193,7 @@ def run_agent(user_message: str) -> str:
             "(OPENAI_API_KEY, GITHUB_OPENAI__API_TOKEN, GROQ_API_KEY, or DEEPSEEK_API_KEY)."
         )
 
-    from .prompts import SYSTEM_PROMPT 
+    from .prompts import SYSTEM_PROMPT
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},

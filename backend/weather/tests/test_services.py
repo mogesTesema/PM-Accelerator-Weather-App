@@ -5,12 +5,10 @@ All HTTP calls are mocked. No real API calls are made.
 """
 
 import json
-import pytest
 from datetime import date
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from weather.services import geocoding, openweather, exports, youtube, google_maps
-
+from weather.services import exports, geocoding, google_maps, openweather, youtube
 
 # ─── geocoding ─────────────────────────────────────────────
 

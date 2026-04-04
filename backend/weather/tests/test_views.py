@@ -5,16 +5,15 @@ All external API calls are mocked. Tests hit the real Django URL router
 against an in-memory SQLite database.
 """
 
-import pytest
 from datetime import date, timedelta
-from unittest.mock import patch, MagicMock
-from django.utils import timezone
+from unittest.mock import patch
 
+import pytest
+from django.utils import timezone
 from rest_framework.test import APIClient
 
-from weather.models import Location, WeatherRecord
+from weather.models import Location
 from weather.tests.conftest import LocationFactory, WeatherRecordFactory
-
 
 # ─── Fixtures ──────────────────────────────────────────────
 

@@ -5,19 +5,23 @@ Weather app views — CRUD, forecast, enrichment, export, and agent query endpoi
 from datetime import date
 
 from django.http import HttpResponse
-from rest_framework import viewsets, status
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiTypes,
+    extend_schema,
+)
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiTypes
 
 from .models import Location, WeatherRecord
 from .serializers import (
     LocationSerializer,
-    WeatherRecordSerializer,
     WeatherCreateSerializer,
+    WeatherRecordSerializer,
 )
-from .services import geocoding, openweather, youtube, google_maps, exports
+from .services import exports, geocoding, google_maps, openweather, youtube
 
 
 # ──────────────────────────────────────────────
@@ -158,7 +162,7 @@ def forecast_view(request):
         geo = geocoding.resolve_location(location_query)
         if not geo:
             geo = geocoding.fuzzy_search(location_query)
-            
+
         if not geo:
             return Response(
                 {"error": True, "detail": f"Could not resolve location: '{location_query}'"},

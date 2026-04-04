@@ -3,14 +3,15 @@ Tests for weather.serializers — LocationSerializer, WeatherRecordSerializer,
 WeatherCreateSerializer.
 """
 
+from datetime import timedelta
+
 import pytest
-from datetime import date, timedelta
 from django.utils import timezone
 
 from weather.serializers import (
     LocationSerializer,
-    WeatherRecordSerializer,
     WeatherCreateSerializer,
+    WeatherRecordSerializer,
 )
 from weather.tests.conftest import LocationFactory, WeatherRecordFactory
 

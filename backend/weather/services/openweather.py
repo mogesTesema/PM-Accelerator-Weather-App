@@ -3,7 +3,7 @@ OpenWeatherMap API client — current weather and 5-day forecast.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 from django.conf import settings
@@ -93,9 +93,9 @@ def _parse_weather(data: dict) -> dict | None:
         if dt_txt:
             parsed_date = datetime.strptime(dt_txt, "%Y-%m-%d %H:%M:%S").date()
         elif dt:
-            parsed_date = datetime.fromtimestamp(dt, tz=timezone.utc).date()
+            parsed_date = datetime.fromtimestamp(dt, tz=UTC).date()
         else:
-            parsed_date = datetime.now(tz=timezone.utc).date()
+            parsed_date = datetime.now(tz=UTC).date()
 
         return {
             "date": parsed_date,

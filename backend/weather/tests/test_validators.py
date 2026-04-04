@@ -2,8 +2,9 @@
 Tests for weather.validators — validate_date_range edge cases.
 """
 
+from datetime import timedelta
+
 import pytest
-from datetime import date, timedelta
 from django.utils import timezone
 from rest_framework import serializers
 

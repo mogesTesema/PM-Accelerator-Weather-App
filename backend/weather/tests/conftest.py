@@ -3,8 +3,9 @@ Factory-boy factories for the weather app models.
 Used by all weather test modules.
 """
 
-import factory
 from datetime import date as _date
+
+import factory
 
 from weather.models import Location, WeatherRecord
 

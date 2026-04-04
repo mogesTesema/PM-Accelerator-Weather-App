@@ -5,6 +5,7 @@ and Pinecone for fuzzy/landmark matching.
 
 import logging
 import re
+
 import requests
 from django.conf import settings
 
@@ -45,7 +46,7 @@ def resolve_location(query: str) -> dict | None:
             "format": "json",
             "limit": 1,
         }
-        
+
         if _is_probable_zip_code(query):
             params["postalcode"] = query.strip()
         else:

@@ -3,6 +3,7 @@ Tests for weather.models — Location and WeatherRecord.
 """
 
 import pytest
+
 from weather.models import Location, WeatherRecord
 from weather.tests.conftest import LocationFactory, WeatherRecordFactory
 
@@ -16,7 +17,7 @@ class TestLocationModel:
         assert str(loc) == "Addis Ababa (9.02, 38.75)"
 
     def test_default_location_type(self):
-        loc = LocationFactory(location_type="")
+        LocationFactory(location_type="")
         # Empty string is stored; default via factory is "city"
         # Test the model-level default using direct creation
         loc2 = Location.objects.create(name="X", latitude=0, longitude=0)
@@ -27,8 +28,8 @@ class TestLocationModel:
         assert loc.resolved_by == "user_input"
 
     def test_ordering(self):
-        loc1 = LocationFactory(name="First")
-        loc2 = LocationFactory(name="Second")
+        LocationFactory(name="First")
+        LocationFactory(name="Second")
         locations = list(Location.objects.all())
         # -created_at means newest first
         assert locations[0].name == "Second"
