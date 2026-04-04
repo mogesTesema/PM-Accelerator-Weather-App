@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend CI/CD
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     paths: ["backend/**"]
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,5 +52,22 @@ jobs:
       - name: Run migrations
         run: uv run python manage.py migrate
 
+      - name: Lint with Ruff
+        run: uv run ruff check .
+
       - name: Run tests with coverage
         run: uv run pytest --cov=weather --cov=core --cov-report=term-missing
+
+  cd:
+    name: Deploy to Render
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.repository == 'mogesTesema/PM-Accelerator-Weather-App' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "RENDER_DEPLOY_HOOK secret is not set!"
+            exit 1
+          fi
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
