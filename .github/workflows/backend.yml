@@ -7,6 +7,7 @@ on:
   pull_request:
     branches: [main]
     paths: ["backend/**"]
+  workflow_dispatch:
 
 jobs:
   ci:
@@ -62,7 +63,7 @@ jobs:
     name: Deploy to Render
     needs: ci
     runs-on: ubuntu-latest
-    if: github.repository == 'mogesTesema/PM-Accelerator-Weather-App' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.repository == 'mogesTesema/PM-Accelerator-Weather-App' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     steps:
       - name: Trigger Render Deploy Hook
         run: |
@@ -70,4 +71,6 @@ jobs:
             echo "RENDER_DEPLOY_HOOK secret is not set!"
             exit 1
           fi
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          
+          # The -f flag fails the GitHub Action if Render returns a 4xx/5xx error (e.g. invalid Webhook URL).
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
