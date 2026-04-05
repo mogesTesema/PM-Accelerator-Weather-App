@@ -1,0 +1,20 @@
+name: Backend CD (Manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  CD:
+    name: CD Deploy to Render
+    runs-on: ubuntu-latest
+    if: github.repository == 'mogesTesema/PM-Accelerator-Weather-App' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "RENDER_DEPLOY_HOOK secret is not set!"
+            exit 1
+          fi
+          
+          # The -f flag fails the GitHub Action if Render returns a 4xx/5xx error (e.g. invalid Webhook URL).
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
