@@ -1,6 +1,0 @@
-{
-  "source_directories": [
-    ".",
-    ".venv/lib/python3.13/site-packages"
-  ]
-}
