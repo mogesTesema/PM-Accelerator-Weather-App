@@ -24,7 +24,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 FROM base AS final
 
 # Create a non-root group and user (Security Sandbox Best Practice)
-RUN groupadd -r djangouser && useradd -r -g djangouser djangouser
+RUN groupadd -r djangouser && useradd -r -m -g djangouser djangouser
 
 WORKDIR /app
 
@@ -44,4 +44,4 @@ USER djangouser
 EXPOSE 8000
 
 # Run the app with Gunicorn dynamically calculating worker counts and binding to $PORT
-CMD gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers "$((2 * $(nproc) + 1))" --timeout 120
+CMD gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers "$((2 * $(nproc) + 1))" --worker-tmp-dir /dev/shm --timeout 120
