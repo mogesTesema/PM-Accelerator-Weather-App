@@ -141,8 +141,12 @@ class TestCreateWeather:
         "weather.views.openweather.get_current_weather",
         return_value=MOCK_WEATHER_RESULT,
     )
+    @patch(
+        "weather.views.openweather.get_forecast",
+        return_value=[MOCK_WEATHER_RESULT],
+    )
     @patch("weather.views.geocoding.resolve_location", return_value=MOCK_GEO_RESULT)
-    def test_success(self, mock_geo, mock_weather, api_client):
+    def test_success(self, mock_geo, mock_forecast, mock_weather, api_client):
         today = timezone.now().date()
         resp = api_client.post(
             "/api/weather/create/",
@@ -174,8 +178,9 @@ class TestCreateWeather:
         assert "Could not resolve" in resp.data["detail"]
 
     @patch("weather.views.openweather.get_current_weather", return_value=None)
+    @patch("weather.views.openweather.get_forecast", return_value=None)
     @patch("weather.views.geocoding.resolve_location", return_value=MOCK_GEO_RESULT)
-    def test_weather_api_failure(self, mock_geo, mock_weather, api_client):
+    def test_weather_api_failure(self, mock_geo, mock_forecast, mock_weather, api_client):
         today = timezone.now().date()
         resp = api_client.post(
             "/api/weather/create/",
