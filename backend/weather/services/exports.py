@@ -125,23 +125,51 @@ def export_pdf(records: list[dict]) -> bytes:
 
 
 def records_to_dicts(queryset) -> list[dict]:
-    """
-    Convert a WeatherRecord queryset to a list of flat dicts
-    suitable for export.
-    """
-    records = []
+    """ Convert a WeatherRecord queryset to a list of flat dicts. """
+    return list(stream_records_to_dicts(queryset))
+
+
+def stream_records_to_dicts(queryset):
+    """ Generator that yields one flat dict at a time suitable for streaming. """
     for wr in queryset:
-        records.append(
-            {
-                "location": wr.location.name,
-                "latitude": wr.location.latitude,
-                "longitude": wr.location.longitude,
-                "date": wr.date.isoformat(),
-                "temperature": wr.temperature,
-                "feels_like": wr.feels_like,
-                "humidity": wr.humidity,
-                "wind_speed": wr.wind_speed,
-                "description": wr.description,
-            }
-        )
-    return records
+        yield {
+            "location": wr.location.name,
+            "latitude": wr.location.latitude,
+            "longitude": wr.location.longitude,
+            "date": wr.date.isoformat(),
+            "temperature": wr.temperature,
+            "feels_like": wr.feels_like,
+            "humidity": wr.humidity,
+            "wind_speed": wr.wind_speed,
+            "description": wr.description,
+        }
+
+
+def stream_csv(records_generator):
+    """ Yields CSV rows. """
+    class Echo:
+        def write(self, value): return value
+        
+    try:
+        first = next(records_generator)
+    except StopIteration:
+        return
+        
+    writer = csv.DictWriter(Echo(), fieldnames=first.keys())
+    yield writer.writeheader()
+    yield writer.writerow(first)
+    
+    for record in records_generator:
+        yield writer.writerow(record)
+
+
+def stream_json(records_generator):
+    """ Yields a JSON array incrementally. """
+    yield "[\n"
+    first = True
+    for record in records_generator:
+        if not first:
+            yield ",\n"
+        yield "  " + json.dumps(record, default=str)
+        first = False
+    yield "\n]"

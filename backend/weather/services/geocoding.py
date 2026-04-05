@@ -6,8 +6,9 @@ and Pinecone for fuzzy/landmark matching.
 import logging
 import re
 
-import requests
+import httpx
 from django.conf import settings
+from asgiref.sync import sync_to_async
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ def _is_probable_zip_code(query: str) -> bool:
     return False
 
 
-def resolve_location(query: str) -> dict | None:
+async def resolve_location(query: str) -> dict | None:
     """
     Resolve a location query string to coordinates via LocationIQ.
     Returns {"name": ..., "lat": ..., "lon": ..., "country": ..., "type": ...}
@@ -52,13 +53,14 @@ def resolve_location(query: str) -> dict | None:
         else:
             params["q"] = query
 
-        response = requests.get(
-            f"{LOCATIONIQ_BASE_URL}/search",
-            params=params,
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{LOCATIONIQ_BASE_URL}/search",
+                params=params,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
 
         if not data:
             return None
@@ -71,11 +73,12 @@ def resolve_location(query: str) -> dict | None:
             "country": _extract_country(result),
             "type": _classify_type(result),
         }
-    except requests.RequestException as e:
+    except Exception as e:
         logger.error("LocationIQ request failed: %s", e)
         return None
 
 
+@sync_to_async
 def fuzzy_search(query: str) -> dict | None:
     """
     Use Pinecone vector similarity search to resolve ambiguous

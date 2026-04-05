@@ -60,8 +60,7 @@ class WeatherRecord(TimeStampedModel):
     description = models.CharField(max_length=255, blank=True, default="")
     icon = models.CharField(max_length=20, blank=True, default="")
 
-    # Raw API response for audit / re-processing
-    raw_response = models.JSONField(default=dict, blank=True)
+    # (Removed raw_response JSONField to prevent DB inflation)
 
     class Meta:
         ordering = ["-date", "-created_at"]

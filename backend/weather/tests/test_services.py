@@ -6,7 +6,9 @@ All HTTP calls are mocked. No real API calls are made.
 
 import json
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from weather.services import exports, geocoding, google_maps, openweather, youtube
 
@@ -50,57 +52,63 @@ class TestClassifyType:
 
 class TestResolveLocation:
 
-    @patch("weather.services.geocoding.requests.get")
+    @pytest.mark.asyncio
+    @patch("weather.services.geocoding.httpx.AsyncClient")
     @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
-    def test_success(self, mock_get):
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: [
-                {
-                    "lat": "51.5074",
-                    "lon": "-0.1278",
-                    "display_name": "London, UK",
-                    "type": "city",
-                    "class": "place",
-                    "address": {"country": "United Kingdom"},
-                }
-            ],
-        )
-        mock_get.return_value.raise_for_status = MagicMock()
+    async def test_success(self, mock_client_class):
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {
+                "lat": "51.5074",
+                "lon": "-0.1278",
+                "display_name": "London, UK",
+                "type": "city",
+                "class": "place",
+                "address": {"country": "United Kingdom"},
+            }
+        ]
+        mock_client.get.return_value = mock_response
 
-        result = geocoding.resolve_location("London")
+        result = await geocoding.resolve_location("London")
         assert result is not None
         assert result["lat"] == 51.5074
         assert result["lon"] == -0.1278
         assert result["name"] == "London, UK"
 
-    @patch("weather.services.geocoding.requests.get")
+    @pytest.mark.asyncio
+    @patch("weather.services.geocoding.httpx.AsyncClient")
     @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
-    def test_zip_uses_postalcode_param(self, mock_get):
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: [
-                {
-                    "lat": "34.0901",
-                    "lon": "-118.4065",
-                    "display_name": "Beverly Hills, CA",
-                    "type": "postcode",
-                    "class": "place",
-                    "address": {"country": "US"},
-                }
-            ],
-        )
-        mock_get.return_value.raise_for_status = MagicMock()
+    async def test_zip_uses_postalcode_param(self, mock_client_class):
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {
+                "lat": "34.0901",
+                "lon": "-118.4065",
+                "display_name": "Beverly Hills, CA",
+                "type": "postcode",
+                "class": "place",
+                "address": {"country": "US"},
+            }
+        ]
+        mock_client.get.return_value = mock_response
 
-        geocoding.resolve_location("90210")
+        await geocoding.resolve_location("90210")
+        
         # Verify postalcode param was used
-        call_kwargs = mock_get.call_args
+        call_kwargs = mock_client.get.call_args
         assert "postalcode" in call_kwargs.kwargs.get("params", call_kwargs[1].get("params", {}))
 
+    @pytest.mark.asyncio
     @patch("weather.services.geocoding.settings")
-    def test_no_api_key(self, mock_settings):
+    async def test_no_api_key(self, mock_settings):
         mock_settings.LOCATIONIQ_API_KEY = ""
-        result = geocoding.resolve_location("London")
+        result = await geocoding.resolve_location("London")
         assert result is None
 
 

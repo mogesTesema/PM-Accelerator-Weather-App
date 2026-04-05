@@ -4,7 +4,8 @@ Weather app views — CRUD, forecast, enrichment, export, and agent query endpoi
 
 from datetime import date
 
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
+from asgiref.sync import async_to_sync, sync_to_async
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -78,10 +79,10 @@ def create_weather(request):
     date_end = serializer.validated_data["date_end"]
 
     # 1. Resolve location
-    geo = geocoding.resolve_location(query)
+    geo = async_to_sync(geocoding.resolve_location)(query)
     if not geo:
         # Try fuzzy search as fallback
-        geo = geocoding.fuzzy_search(query)
+        geo = async_to_sync(geocoding.fuzzy_search)(query)
 
     if not geo:
         return Response(
@@ -102,7 +103,7 @@ def create_weather(request):
     )
 
     # 3. Fetch current weather
-    weather_data = openweather.get_current_weather(location.latitude, location.longitude)
+    weather_data = async_to_sync(openweather.get_current_weather)(location.latitude, location.longitude)
     if not weather_data:
         return Response(
             {"error": True, "detail": "Failed to fetch weather data from API."},
@@ -125,7 +126,6 @@ def create_weather(request):
         wind_speed=weather_data.get("wind_speed"),
         description=weather_data.get("description", ""),
         icon=weather_data.get("icon", ""),
-        raw_response=weather_data.get("raw_response", {}),
     )
 
     return Response(
@@ -159,9 +159,9 @@ def forecast_view(request):
     lon = request.query_params.get("lon")
 
     if location_query:
-        geo = geocoding.resolve_location(location_query)
+        geo = async_to_sync(geocoding.resolve_location)(location_query)
         if not geo:
-            geo = geocoding.fuzzy_search(location_query)
+            geo = async_to_sync(geocoding.fuzzy_search)(location_query)
 
         if not geo:
             return Response(
@@ -192,7 +192,7 @@ def forecast_view(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    data = openweather.get_forecast(lat, lon)
+    data = async_to_sync(openweather.get_forecast)(lat, lon)
     if data is None:
         return Response(
             {"error": True, "detail": "Failed to fetch forecast from API."},
@@ -273,15 +273,25 @@ def export_view(request):
     if location_id:
         queryset = queryset.filter(location_id=location_id)
 
-    records = exports.records_to_dicts(queryset)
+    # Use chunked iteration to prevent loading heavy memory models all at once
+    queryset = queryset.iterator(chunk_size=1000)
 
     if fmt == "csv":
-        content = exports.export_csv(records)
-        response = HttpResponse(content, content_type="text/csv")
+        generator = exports.stream_records_to_dicts(queryset)
+        response = StreamingHttpResponse(exports.stream_csv(generator), content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="weather_data.csv"'
         return response
 
-    elif fmt == "pdf":
+    elif fmt == "json":
+        generator = exports.stream_records_to_dicts(queryset)
+        response = StreamingHttpResponse(exports.stream_json(generator), content_type="application/json")
+        response["Content-Disposition"] = 'attachment; filename="weather_data.json"'
+        return response
+
+    # For formats that don't natively stream, convert the lazy iterator to a list
+    records = exports.records_to_dicts(queryset)
+
+    if fmt == "pdf":
         content = exports.export_pdf(records)
         response = HttpResponse(content, content_type="application/pdf")
         response["Content-Disposition"] = 'attachment; filename="weather_data.pdf"'
@@ -297,12 +307,6 @@ def export_view(request):
         content = exports.export_md(records)
         response = HttpResponse(content, content_type="text/markdown")
         response["Content-Disposition"] = 'attachment; filename="weather_data.md"'
-        return response
-
-    else:  # Default to JSON
-        content = exports.export_json(records)
-        response = HttpResponse(content, content_type="application/json")
-        response["Content-Disposition"] = 'attachment; filename="weather_data.json"'
         return response
 
 

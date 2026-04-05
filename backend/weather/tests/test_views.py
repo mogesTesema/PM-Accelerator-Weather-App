@@ -43,6 +43,7 @@ class TestLocationCRUD:
             {"name": "Paris", "latitude": 48.85, "longitude": 2.35},
             format="json",
         )
+        print("RESP DATA:", resp.content)
         assert resp.status_code == 201
         assert resp.data["name"] == "Paris"
 
@@ -86,6 +87,7 @@ class TestWeatherRecordCRUD:
             },
             format="json",
         )
+        print("RESP DATA:", resp.content)
         assert resp.status_code == 201
         assert resp.data["temperature"] == 18.5
 
