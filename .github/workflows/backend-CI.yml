@@ -1,4 +1,4 @@
-name: Backend CI/CD
+name: Backend CI
 
 on:
   push:
@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci:
+  CI:
+    name: CI Test Driven Development
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -58,19 +59,3 @@ jobs:
 
       - name: Run tests with coverage
         run: uv run pytest --cov=weather --cov=core --cov-report=term-missing
-
-  cd:
-    name: Deploy to Render
-    needs: ci
-    runs-on: ubuntu-latest
-    if: github.repository == 'mogesTesema/PM-Accelerator-Weather-App' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    steps:
-      - name: Trigger Render Deploy Hook
-        run: |
-          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
-            echo "RENDER_DEPLOY_HOOK secret is not set!"
-            exit 1
-          fi
-          
-          # The -f flag fails the GitHub Action if Render returns a 4xx/5xx error (e.g. invalid Webhook URL).
-          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

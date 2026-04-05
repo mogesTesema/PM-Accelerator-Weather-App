@@ -4,7 +4,8 @@ Weather app views — CRUD, forecast, enrichment, export, and agent query endpoi
 
 from datetime import date
 
-from django.http import HttpResponse
+from asgiref.sync import async_to_sync
+from django.http import HttpResponse, StreamingHttpResponse
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -62,7 +63,7 @@ class WeatherRecordViewSet(viewsets.ModelViewSet):
             },
             request_only=True,
         )
-    ]
+    ],
 )
 @api_view(["POST"])
 def create_weather(request):
@@ -78,10 +79,10 @@ def create_weather(request):
     date_end = serializer.validated_data["date_end"]
 
     # 1. Resolve location
-    geo = geocoding.resolve_location(query)
+    geo = async_to_sync(geocoding.resolve_location)(query)
     if not geo:
         # Try fuzzy search as fallback
-        geo = geocoding.fuzzy_search(query)
+        geo = async_to_sync(geocoding.fuzzy_search)(query)
 
     if not geo:
         return Response(
@@ -101,8 +102,40 @@ def create_weather(request):
         },
     )
 
-    # 3. Fetch current weather
-    weather_data = openweather.get_current_weather(location.latitude, location.longitude)
+    # 3. Fetch weather data for the date range
+    forecast_list = async_to_sync(openweather.get_forecast)(
+        location.latitude, location.longitude
+    )
+    weather_data = None
+
+    if forecast_list:
+        range_data = [
+            item for item in forecast_list
+            if date_start <= item["date"] <= date_end
+        ]
+        if range_data:
+            temps = [i["temperature"] for i in range_data if i["temperature"] is not None]
+            feels = [i["feels_like"] for i in range_data if i["feels_like"] is not None]
+            hums = [i["humidity"] for i in range_data if i["humidity"] is not None]
+            winds = [i["wind_speed"] for i in range_data if i["wind_speed"] is not None]
+            first_item = range_data[0]
+
+            weather_data = {
+                "date": date_start,
+                "temperature": round(sum(temps) / len(temps), 2) if temps else 0.0,
+                "feels_like": round(sum(feels) / len(feels), 2) if feels else None,
+                "humidity": int(sum(hums) / len(hums)) if hums else None,
+                "wind_speed": round(sum(winds) / len(winds), 2) if winds else None,
+                "description": first_item.get("description", ""),
+                "icon": first_item.get("icon", ""),
+            }
+
+    if not weather_data:
+        # Fallback to current weather if range is historical/unsupported
+        weather_data = async_to_sync(openweather.get_current_weather)(
+            location.latitude, location.longitude
+        )
+
     if not weather_data:
         return Response(
             {"error": True, "detail": "Failed to fetch weather data from API."},
@@ -125,7 +158,6 @@ def create_weather(request):
         wind_speed=weather_data.get("wind_speed"),
         description=weather_data.get("description", ""),
         icon=weather_data.get("icon", ""),
-        raw_response=weather_data.get("raw_response", {}),
     )
 
     return Response(
@@ -141,12 +173,26 @@ def create_weather(request):
     summary="Get 5-Day Forecast",
     description="Retrieve a 5-day / 3-hour forecast either by a full `location_query`, existing `location_id` in the database, or raw `lat` & `lon` coordinates.",
     parameters=[
-        OpenApiParameter(name="location_query", description="City name, zip code, landmark, or coordinates", required=False, type=OpenApiTypes.STR),
-        OpenApiParameter(name="location_id", description="ID of a stored Location", required=False, type=OpenApiTypes.INT),
-        OpenApiParameter(name="lat", description="Latitude", required=False, type=OpenApiTypes.FLOAT),
-        OpenApiParameter(name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT),
+        OpenApiParameter(
+            name="location_query",
+            description="City name, zip code, landmark, or coordinates",
+            required=False,
+            type=OpenApiTypes.STR,
+        ),
+        OpenApiParameter(
+            name="location_id",
+            description="ID of a stored Location",
+            required=False,
+            type=OpenApiTypes.INT,
+        ),
+        OpenApiParameter(
+            name="lat", description="Latitude", required=False, type=OpenApiTypes.FLOAT
+        ),
+        OpenApiParameter(
+            name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT
+        ),
     ],
-    responses={200: OpenApiTypes.OBJECT}
+    responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["GET"])
 def forecast_view(request):
@@ -159,13 +205,16 @@ def forecast_view(request):
     lon = request.query_params.get("lon")
 
     if location_query:
-        geo = geocoding.resolve_location(location_query)
+        geo = async_to_sync(geocoding.resolve_location)(location_query)
         if not geo:
-            geo = geocoding.fuzzy_search(location_query)
+            geo = async_to_sync(geocoding.fuzzy_search)(location_query)
 
         if not geo:
             return Response(
-                {"error": True, "detail": f"Could not resolve location: '{location_query}'"},
+                {
+                    "error": True,
+                    "detail": f"Could not resolve location: '{location_query}'",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         lat, lon = geo["lat"], geo["lon"]
@@ -188,11 +237,14 @@ def forecast_view(request):
             )
     else:
         return Response(
-            {"error": True, "detail": "Provide location_query, location_id, or lat & lon."},
+            {
+                "error": True,
+                "detail": "Provide location_query, location_id, or lat & lon.",
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    data = openweather.get_forecast(lat, lon)
+    data = async_to_sync(openweather.get_forecast)(lat, lon)
     if data is None:
         return Response(
             {"error": True, "detail": "Failed to fetch forecast from API."},
@@ -209,9 +261,14 @@ def forecast_view(request):
     summary="Get Location Enrichment",
     description="Retrieve YouTube travel/weather videos and Google/Stadia Maps data for a stored location.",
     parameters=[
-        OpenApiParameter(name="location_id", description="ID of a stored Location", required=True, type=OpenApiTypes.INT),
+        OpenApiParameter(
+            name="location_id",
+            description="ID of a stored Location",
+            required=True,
+            type=OpenApiTypes.INT,
+        ),
     ],
-    responses={200: OpenApiTypes.OBJECT}
+    responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["GET"])
 def enrichment_view(request):
@@ -253,12 +310,20 @@ def enrichment_view(request):
     summary="Export Weather Data",
     description="Export weather records in various formats (json, csv, pdf, xml, md). Optionally filter by location_id.",
     parameters=[
-        OpenApiParameter(name="export_format", description="Format to export (json, csv, pdf, xml, md)", required=False, type=OpenApiTypes.STR),
-        OpenApiParameter(name="location_id", description="Optional Location ID to filter by", required=False, type=OpenApiTypes.INT),
+        OpenApiParameter(
+            name="export_format",
+            description="Format to export (json, csv, pdf, xml, md)",
+            required=False,
+            type=OpenApiTypes.STR,
+        ),
+        OpenApiParameter(
+            name="location_id",
+            description="Optional Location ID to filter by",
+            required=False,
+            type=OpenApiTypes.INT,
+        ),
     ],
-    responses={
-        200: OpenApiTypes.BINARY
-    }
+    responses={200: OpenApiTypes.BINARY},
 )
 @api_view(["GET"])
 def export_view(request):
@@ -273,15 +338,29 @@ def export_view(request):
     if location_id:
         queryset = queryset.filter(location_id=location_id)
 
-    records = exports.records_to_dicts(queryset)
+    # Use chunked iteration to prevent loading heavy memory models all at once
+    queryset = queryset.iterator(chunk_size=1000)
 
     if fmt == "csv":
-        content = exports.export_csv(records)
-        response = HttpResponse(content, content_type="text/csv")
+        generator = exports.stream_records_to_dicts(queryset)
+        response = StreamingHttpResponse(
+            exports.stream_csv(generator), content_type="text/csv"
+        )
         response["Content-Disposition"] = 'attachment; filename="weather_data.csv"'
         return response
 
-    elif fmt == "pdf":
+    elif fmt == "json":
+        generator = exports.stream_records_to_dicts(queryset)
+        response = StreamingHttpResponse(
+            exports.stream_json(generator), content_type="application/json"
+        )
+        response["Content-Disposition"] = 'attachment; filename="weather_data.json"'
+        return response
+
+    # For formats that don't natively stream, convert the lazy iterator to a list
+    records = exports.records_to_dicts(queryset)
+
+    if fmt == "pdf":
         content = exports.export_pdf(records)
         response = HttpResponse(content, content_type="application/pdf")
         response["Content-Disposition"] = 'attachment; filename="weather_data.pdf"'
@@ -299,12 +378,6 @@ def export_view(request):
         response["Content-Disposition"] = 'attachment; filename="weather_data.md"'
         return response
 
-    else:  # Default to JSON
-        content = exports.export_json(records)
-        response = HttpResponse(content, content_type="application/json")
-        response["Content-Disposition"] = 'attachment; filename="weather_data.json"'
-        return response
-
 
 # ──────────────────────────────────────────────
 # Agent Query
@@ -312,7 +385,12 @@ def export_view(request):
 @extend_schema(
     summary="AI Agent Query",
     description="Send a natural language message to the AI orchestrator to autonomously retrieve weather, forecasts, or YouTube videos.",
-    request={"application/json": {"type": "object", "properties": {"message": {"type": "string"}}}},
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {"message": {"type": "string"}},
+        }
+    },
     examples=[
         OpenApiExample(
             "Valid Request",
@@ -320,7 +398,7 @@ def export_view(request):
             request_only=True,
         )
     ],
-    responses={200: OpenApiTypes.OBJECT}
+    responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["POST"])
 def agent_query_view(request):

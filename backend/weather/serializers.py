@@ -43,7 +43,6 @@ class WeatherRecordSerializer(serializers.ModelSerializer):
             "wind_speed",
             "description",
             "icon",
-            "raw_response",
             "created_at",
             "updated_at",
         ]

@@ -6,14 +6,16 @@ All HTTP calls are mocked. No real API calls are made.
 
 import json
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from weather.services import exports, geocoding, google_maps, openweather, youtube
 
 # ─── geocoding ─────────────────────────────────────────────
 
-class TestIsZipCode:
 
+class TestIsZipCode:
     def test_us_zip(self):
         assert geocoding._is_probable_zip_code("90210") is True
 
@@ -34,7 +36,6 @@ class TestIsZipCode:
 
 
 class TestClassifyType:
-
     def test_city(self):
         assert geocoding._classify_type({"class": "place", "type": "city"}) == "city"
 
@@ -42,72 +43,85 @@ class TestClassifyType:
         assert geocoding._classify_type({"type": "postcode"}) == "zip"
 
     def test_landmark(self):
-        assert geocoding._classify_type({"class": "tourism", "type": "attraction"}) == "landmark"
+        assert (
+            geocoding._classify_type({"class": "tourism", "type": "attraction"})
+            == "landmark"
+        )
 
     def test_other(self):
-        assert geocoding._classify_type({"class": "highway", "type": "residential"}) == "other"
+        assert (
+            geocoding._classify_type({"class": "highway", "type": "residential"})
+            == "other"
+        )
 
 
 class TestResolveLocation:
-
-    @patch("weather.services.geocoding.requests.get")
+    @pytest.mark.asyncio
+    @patch("weather.services.geocoding.httpx.AsyncClient")
     @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
-    def test_success(self, mock_get):
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: [
-                {
-                    "lat": "51.5074",
-                    "lon": "-0.1278",
-                    "display_name": "London, UK",
-                    "type": "city",
-                    "class": "place",
-                    "address": {"country": "United Kingdom"},
-                }
-            ],
-        )
-        mock_get.return_value.raise_for_status = MagicMock()
+    async def test_success(self, mock_client_class):
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {
+                "lat": "51.5074",
+                "lon": "-0.1278",
+                "display_name": "London, UK",
+                "type": "city",
+                "class": "place",
+                "address": {"country": "United Kingdom"},
+            }
+        ]
+        mock_client.get.return_value = mock_response
 
-        result = geocoding.resolve_location("London")
+        result = await geocoding.resolve_location("London")
         assert result is not None
         assert result["lat"] == 51.5074
         assert result["lon"] == -0.1278
         assert result["name"] == "London, UK"
 
-    @patch("weather.services.geocoding.requests.get")
+    @pytest.mark.asyncio
+    @patch("weather.services.geocoding.httpx.AsyncClient")
     @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
-    def test_zip_uses_postalcode_param(self, mock_get):
-        mock_get.return_value = MagicMock(
-            status_code=200,
-            json=lambda: [
-                {
-                    "lat": "34.0901",
-                    "lon": "-118.4065",
-                    "display_name": "Beverly Hills, CA",
-                    "type": "postcode",
-                    "class": "place",
-                    "address": {"country": "US"},
-                }
-            ],
-        )
-        mock_get.return_value.raise_for_status = MagicMock()
+    async def test_zip_uses_postalcode_param(self, mock_client_class):
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {
+                "lat": "34.0901",
+                "lon": "-118.4065",
+                "display_name": "Beverly Hills, CA",
+                "type": "postcode",
+                "class": "place",
+                "address": {"country": "US"},
+            }
+        ]
+        mock_client.get.return_value = mock_response
 
-        geocoding.resolve_location("90210")
+        await geocoding.resolve_location("90210")
+
         # Verify postalcode param was used
-        call_kwargs = mock_get.call_args
-        assert "postalcode" in call_kwargs.kwargs.get("params", call_kwargs[1].get("params", {}))
+        call_kwargs = mock_client.get.call_args
+        assert "postalcode" in call_kwargs.kwargs.get(
+            "params", call_kwargs[1].get("params", {})
+        )
 
+    @pytest.mark.asyncio
     @patch("weather.services.geocoding.settings")
-    def test_no_api_key(self, mock_settings):
+    async def test_no_api_key(self, mock_settings):
         mock_settings.LOCATIONIQ_API_KEY = ""
-        result = geocoding.resolve_location("London")
+        result = await geocoding.resolve_location("London")
         assert result is None
 
 
 # ─── openweather ───────────────────────────────────────────
 
-class TestParseWeather:
 
+class TestParseWeather:
     def test_with_dt_timestamp(self):
         data = {
             "dt": 1712188800,  # 2024-04-04 00:00:00 UTC
@@ -155,7 +169,6 @@ SAMPLE_RECORDS = [
 
 
 class TestExports:
-
     def test_export_json(self):
         result = exports.export_json(SAMPLE_RECORDS)
         parsed = json.loads(result)
@@ -204,8 +217,8 @@ class TestExports:
 
 # ─── youtube ───────────────────────────────────────────────
 
-class TestYouTubeService:
 
+class TestYouTubeService:
     @patch("weather.services.youtube.settings")
     def test_no_api_key(self, mock_settings):
         mock_settings.YOUTUBE_API_KEY = ""
@@ -240,8 +253,8 @@ class TestYouTubeService:
 
 # ─── google_maps ───────────────────────────────────────────
 
-class TestGoogleMapsService:
 
+class TestGoogleMapsService:
     @patch("weather.services.google_maps.settings")
     def test_no_keys(self, mock_settings):
         mock_settings.GOOGLE_MAPS_API_KEY = ""

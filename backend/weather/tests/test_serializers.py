@@ -24,9 +24,15 @@ class TestLocationSerializer:
         loc = LocationFactory()
         data = LocationSerializer(loc).data
         expected_fields = {
-            "id", "name", "latitude", "longitude",
-            "country", "location_type", "resolved_by",
-            "created_at", "updated_at",
+            "id",
+            "name",
+            "latitude",
+            "longitude",
+            "country",
+            "location_type",
+            "resolved_by",
+            "created_at",
+            "updated_at",
         }
         assert set(data.keys()) == expected_fields
 

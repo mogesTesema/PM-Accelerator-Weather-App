@@ -8,7 +8,6 @@ from rest_framework.test import APIClient
 
 @pytest.mark.django_db
 class TestCustomExceptionHandler:
-
     def test_404_returns_error_envelope(self):
         """A 404 from DRF should be wrapped in {error, detail, status_code}."""
         client = APIClient()

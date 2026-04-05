@@ -5,7 +5,7 @@ OpenWeatherMap API client — current weather and 5-day forecast.
 import logging
 from datetime import UTC, datetime
 
-import requests
+import httpx
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 BASE_URL = "https://api.openweathermap.org/data/2.5"
 
 
-def get_current_weather(lat: float, lon: float) -> dict | None:
+async def get_current_weather(lat: float, lon: float) -> dict | None:
     """
     Fetch current weather for given coordinates.
     Returns parsed dict or None on failure.
@@ -24,26 +24,30 @@ def get_current_weather(lat: float, lon: float) -> dict | None:
         return None
 
     try:
-        response = requests.get(
-            f"{BASE_URL}/weather",
-            params={
-                "lat": lat,
-                "lon": lon,
-                "appid": api_key,
-                "units": "metric",
-            },
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{BASE_URL}/weather",
+                params={
+                    "lat": lat,
+                    "lon": lon,
+                    "appid": api_key,
+                    "units": "metric",
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
 
         return _parse_weather(data)
-    except requests.RequestException as e:
+    except httpx.RequestError as e:
         logger.error("OpenWeatherMap current weather request failed: %s", e)
+        return None
+    except httpx.HTTPStatusError as e:
+        logger.error("OpenWeatherMap returned bad HTTP status: %s", e)
         return None
 
 
-def get_forecast(lat: float, lon: float) -> list[dict] | None:
+async def get_forecast(lat: float, lon: float) -> list[dict] | None:
     """
     Fetch 5-day / 3-hour forecast for given coordinates.
     Returns list of parsed weather dicts (one per 3-hour slot) or None.
@@ -54,18 +58,19 @@ def get_forecast(lat: float, lon: float) -> list[dict] | None:
         return None
 
     try:
-        response = requests.get(
-            f"{BASE_URL}/forecast",
-            params={
-                "lat": lat,
-                "lon": lon,
-                "appid": api_key,
-                "units": "metric",
-            },
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{BASE_URL}/forecast",
+                params={
+                    "lat": lat,
+                    "lon": lon,
+                    "appid": api_key,
+                    "units": "metric",
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
 
         forecasts = []
         for item in data.get("list", []):
@@ -74,8 +79,11 @@ def get_forecast(lat: float, lon: float) -> list[dict] | None:
                 forecasts.append(parsed)
 
         return forecasts
-    except requests.RequestException as e:
+    except httpx.RequestError as e:
         logger.error("OpenWeatherMap forecast request failed: %s", e)
+        return None
+    except httpx.HTTPStatusError as e:
+        logger.error("OpenWeatherMap returned bad HTTP status: %s", e)
         return None
 
 
@@ -105,7 +113,6 @@ def _parse_weather(data: dict) -> dict | None:
             "wind_speed": wind.get("speed"),
             "description": weather_info.get("description", ""),
             "icon": weather_info.get("icon", ""),
-            "raw_response": data,
         }
     except (KeyError, IndexError, ValueError) as e:
         logger.error("Failed to parse weather data: %s", e)
