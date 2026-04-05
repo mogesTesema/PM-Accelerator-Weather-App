@@ -23,7 +23,8 @@ SECRET_KEY = os.getenv(
     "django-insecure-r^-qu#49pn^yvz-m5ei-@$1ki@ovmeq38u2t*14!dogn!2f+ih",
 )
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.onrender.com").split(",") if host.strip()]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "https://*.onrender.com").split(",") if origin.strip()]
 
 # ──────────────────────────────────────────────
 # Application definition
@@ -111,6 +112,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # ──────────────────────────────────────────────
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # ──────────────────────────────────────────────
 # Default primary key field type
@@ -150,7 +152,7 @@ SPECTACULAR_SETTINGS = {
 # CORS
 # ──────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if not DEBUG else []
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ALLOWED_ORIGINS", "https://*.onrender.com").split(",") if origin.strip()] if not DEBUG else []
 
 # ──────────────────────────────────────────────
 # External API Keys
