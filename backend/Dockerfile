@@ -37,6 +37,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy the actual application code into the container
 COPY --chown=djangouser:djangouser . .
 
+# Ensure the /app directory is writable by djangouser (so SQLite can create db.sqlite3 files)
+RUN chown djangouser:djangouser /app
+
 # Switch to the non-root user before running the application
 USER djangouser
 
@@ -44,4 +47,4 @@ USER djangouser
 EXPOSE 8000
 
 # Run migrations and then start the app with Gunicorn
-CMD python manage.py migrate --noinput && gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers "$((2 * $(nproc) + 1))" --worker-tmp-dir /dev/shm --timeout 120
+CMD python manage.py migrate --noinput && gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers 2 --threads 2 --worker-tmp-dir /dev/shm --timeout 120

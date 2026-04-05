@@ -15,6 +15,10 @@ __pycache__/
 .Python
 
 # Testing and tooling
+tests/
+*./tests
+conftest.py
+pytest.ini
 .pytest_cache/
 .coverage
 htmlcov/
