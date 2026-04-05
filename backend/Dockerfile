@@ -43,5 +43,5 @@ USER djangouser
 # Expose Render's default routing port
 EXPOSE 8000
 
-# Run the app with Gunicorn dynamically calculating worker counts and binding to $PORT
-CMD gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers "$((2 * $(nproc) + 1))" --worker-tmp-dir /dev/shm --timeout 120
+# Run migrations and then start the app with Gunicorn
+CMD python manage.py migrate --noinput && gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers "$((2 * $(nproc) + 1))" --worker-tmp-dir /dev/shm --timeout 120
