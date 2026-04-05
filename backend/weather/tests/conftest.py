@@ -40,4 +40,3 @@ class WeatherRecordFactory(factory.django.DjangoModelFactory):
     wind_speed = 3.5
     description = "clear sky"
     icon = "01d"
-

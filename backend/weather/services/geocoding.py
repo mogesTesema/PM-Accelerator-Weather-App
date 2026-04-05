@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 LOCATIONIQ_BASE_URL = "https://us1.locationiq.com/v1"
 
+
 def _is_probable_zip_code(query: str) -> bool:
     """Return True if query looks like a postal/zip code."""
     query = query.strip()

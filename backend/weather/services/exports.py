@@ -34,6 +34,7 @@ def export_xml(records: list[dict]) -> str:
 
     # Pretty print if possible, else return string
     import xml.dom.minidom
+
     xmlstr = xml.dom.minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
     return xmlstr
 
@@ -93,7 +94,12 @@ def export_pdf(records: list[dict]) -> bytes:
     headers = list(records[0].keys())
     # Truncate to key fields for readability
     display_fields = [
-        "location", "date", "temperature", "humidity", "wind_speed", "description",
+        "location",
+        "date",
+        "temperature",
+        "humidity",
+        "wind_speed",
+        "description",
     ]
     headers = [h for h in display_fields if h in headers] or headers[:6]
 
@@ -125,12 +131,12 @@ def export_pdf(records: list[dict]) -> bytes:
 
 
 def records_to_dicts(queryset) -> list[dict]:
-    """ Convert a WeatherRecord queryset to a list of flat dicts. """
+    """Convert a WeatherRecord queryset to a list of flat dicts."""
     return list(stream_records_to_dicts(queryset))
 
 
 def stream_records_to_dicts(queryset):
-    """ Generator that yields one flat dict at a time suitable for streaming. """
+    """Generator that yields one flat dict at a time suitable for streaming."""
     for wr in queryset:
         yield {
             "location": wr.location.name,
@@ -146,9 +152,11 @@ def stream_records_to_dicts(queryset):
 
 
 def stream_csv(records_generator):
-    """ Yields CSV rows. """
+    """Yields CSV rows."""
+
     class Echo:
-        def write(self, value): return value
+        def write(self, value):
+            return value
 
     try:
         first = next(records_generator)
@@ -164,7 +172,7 @@ def stream_csv(records_generator):
 
 
 def stream_json(records_generator):
-    """ Yields a JSON array incrementally. """
+    """Yields a JSON array incrementally."""
     yield "[\n"
     first = True
     for record in records_generator:

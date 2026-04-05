@@ -72,12 +72,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-
 # ──────────────────────────────────────────────
 # Password validation
 # ──────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -132,7 +133,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-
 # ──────────────────────────────────────────────
 # External API Keys
 # ──────────────────────────────────────────────
@@ -147,4 +147,6 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 GITHUB_OPENAI_API_TOKEN = os.getenv("GITHUB_OPENAI__API_TOKEN", "")
-GITHUB_OPENAI_BASE_URL = os.getenv("GITHUB_OPENAI_BASE_URL", "https://models.inference.ai.azure.com")
+GITHUB_OPENAI_BASE_URL = os.getenv(
+    "GITHUB_OPENAI_BASE_URL", "https://models.inference.ai.azure.com"
+)

@@ -17,6 +17,7 @@ from weather.tests.conftest import LocationFactory, WeatherRecordFactory
 
 # ─── Fixtures ──────────────────────────────────────────────
 
+
 @pytest.fixture
 def api_client():
     return APIClient()
@@ -34,9 +35,9 @@ def sample_record(sample_location):
 
 # ─── Location CRUD ─────────────────────────────────────────
 
+
 @pytest.mark.django_db
 class TestLocationCRUD:
-
     def test_create_location(self, api_client):
         resp = api_client.post(
             "/api/weather/locations/",
@@ -74,9 +75,9 @@ class TestLocationCRUD:
 
 # ─── WeatherRecord CRUD ───────────────────────────────────
 
+
 @pytest.mark.django_db
 class TestWeatherRecordCRUD:
-
     def test_create_weather_record(self, api_client, sample_location):
         resp = api_client.post(
             "/api/weather/records/",
@@ -136,8 +137,10 @@ MOCK_WEATHER_RESULT = {
 
 @pytest.mark.django_db
 class TestCreateWeather:
-
-    @patch("weather.views.openweather.get_current_weather", return_value=MOCK_WEATHER_RESULT)
+    @patch(
+        "weather.views.openweather.get_current_weather",
+        return_value=MOCK_WEATHER_RESULT,
+    )
     @patch("weather.views.geocoding.resolve_location", return_value=MOCK_GEO_RESULT)
     def test_success(self, mock_geo, mock_weather, api_client):
         today = timezone.now().date()
@@ -188,9 +191,9 @@ class TestCreateWeather:
 
 # ─── Forecast (mocked) ────────────────────────────────────
 
+
 @pytest.mark.django_db
 class TestForecastView:
-
     @patch("weather.views.openweather.get_forecast", return_value=[{"temp": 20}])
     def test_forecast_by_coords(self, mock_fc, api_client):
         resp = api_client.get("/api/weather/forecast/", {"lat": "51.5", "lon": "-0.12"})
@@ -199,7 +202,9 @@ class TestForecastView:
 
     @patch("weather.views.openweather.get_forecast", return_value=[{"temp": 20}])
     def test_forecast_by_location_id(self, mock_fc, api_client, sample_location):
-        resp = api_client.get("/api/weather/forecast/", {"location_id": sample_location.id})
+        resp = api_client.get(
+            "/api/weather/forecast/", {"location_id": sample_location.id}
+        )
         assert resp.status_code == 200
 
     def test_forecast_missing_params(self, api_client):
@@ -218,13 +223,17 @@ class TestForecastView:
 
 # ─── Enrichment (mocked) ──────────────────────────────────
 
+
 @pytest.mark.django_db
 class TestEnrichmentView:
-
-    @patch("weather.views.google_maps.get_map_data", return_value={"embed_url": "http://x"})
+    @patch(
+        "weather.views.google_maps.get_map_data", return_value={"embed_url": "http://x"}
+    )
     @patch("weather.views.youtube.search_videos", return_value=[{"title": "Trip"}])
     def test_success(self, mock_yt, mock_maps, api_client, sample_location):
-        resp = api_client.get("/api/weather/enrichment/", {"location_id": sample_location.id})
+        resp = api_client.get(
+            "/api/weather/enrichment/", {"location_id": sample_location.id}
+        )
         assert resp.status_code == 200
         assert "youtube_videos" in resp.data
         assert "google_maps" in resp.data
@@ -240,9 +249,9 @@ class TestEnrichmentView:
 
 # ─── Export ────────────────────────────────────────────────
 
+
 @pytest.mark.django_db
 class TestExportView:
-
     def test_export_json(self, api_client, sample_record):
         resp = api_client.get("/api/weather/export/", {"export_format": "json"})
         assert resp.status_code == 200
@@ -276,9 +285,9 @@ class TestExportView:
 
 # ─── Agent Query ───────────────────────────────────────────
 
+
 @pytest.mark.django_db
 class TestAgentQueryView:
-
     def test_empty_message(self, api_client):
         resp = api_client.post("/api/weather/agent/query/", {}, format="json")
         assert resp.status_code == 400

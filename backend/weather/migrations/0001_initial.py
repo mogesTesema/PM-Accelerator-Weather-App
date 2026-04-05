@@ -5,50 +5,104 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Location',
+            name="Location",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=255)),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-                ('country', models.CharField(blank=True, default='', max_length=100)),
-                ('location_type', models.CharField(choices=[('city', 'City'), ('zip', 'Zip Code'), ('landmark', 'Landmark'), ('coordinates', 'GPS Coordinates'), ('other', 'Other')], default='other', max_length=20)),
-                ('resolved_by', models.CharField(choices=[('user_input', 'User Input'), ('locationiq', 'LocationIQ'), ('pinecone', 'Pinecone (Fuzzy Match)')], default='user_input', max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=255)),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
+                ("country", models.CharField(blank=True, default="", max_length=100)),
+                (
+                    "location_type",
+                    models.CharField(
+                        choices=[
+                            ("city", "City"),
+                            ("zip", "Zip Code"),
+                            ("landmark", "Landmark"),
+                            ("coordinates", "GPS Coordinates"),
+                            ("other", "Other"),
+                        ],
+                        default="other",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "resolved_by",
+                    models.CharField(
+                        choices=[
+                            ("user_input", "User Input"),
+                            ("locationiq", "LocationIQ"),
+                            ("pinecone", "Pinecone (Fuzzy Match)"),
+                        ],
+                        default="user_input",
+                        max_length=20,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='WeatherRecord',
+            name="WeatherRecord",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('date', models.DateField()),
-                ('date_range_start', models.DateField(blank=True, null=True)),
-                ('date_range_end', models.DateField(blank=True, null=True)),
-                ('temperature', models.FloatField(help_text='Temperature in Celsius')),
-                ('feels_like', models.FloatField(blank=True, null=True)),
-                ('humidity', models.IntegerField(blank=True, help_text='Percentage', null=True)),
-                ('wind_speed', models.FloatField(blank=True, help_text='m/s', null=True)),
-                ('description', models.CharField(blank=True, default='', max_length=255)),
-                ('icon', models.CharField(blank=True, default='', max_length=20)),
-                ('raw_response', models.JSONField(blank=True, default=dict)),
-                ('location', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='weather_records', to='weather.location')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("date", models.DateField()),
+                ("date_range_start", models.DateField(blank=True, null=True)),
+                ("date_range_end", models.DateField(blank=True, null=True)),
+                ("temperature", models.FloatField(help_text="Temperature in Celsius")),
+                ("feels_like", models.FloatField(blank=True, null=True)),
+                (
+                    "humidity",
+                    models.IntegerField(blank=True, help_text="Percentage", null=True),
+                ),
+                (
+                    "wind_speed",
+                    models.FloatField(blank=True, help_text="m/s", null=True),
+                ),
+                (
+                    "description",
+                    models.CharField(blank=True, default="", max_length=255),
+                ),
+                ("icon", models.CharField(blank=True, default="", max_length=20)),
+                ("raw_response", models.JSONField(blank=True, default=dict)),
+                (
+                    "location",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="weather_records",
+                        to="weather.location",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-date', '-created_at'],
+                "ordering": ["-date", "-created_at"],
             },
         ),
     ]

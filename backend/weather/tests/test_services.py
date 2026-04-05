@@ -14,8 +14,8 @@ from weather.services import exports, geocoding, google_maps, openweather, youtu
 
 # ─── geocoding ─────────────────────────────────────────────
 
-class TestIsZipCode:
 
+class TestIsZipCode:
     def test_us_zip(self):
         assert geocoding._is_probable_zip_code("90210") is True
 
@@ -36,7 +36,6 @@ class TestIsZipCode:
 
 
 class TestClassifyType:
-
     def test_city(self):
         assert geocoding._classify_type({"class": "place", "type": "city"}) == "city"
 
@@ -44,14 +43,19 @@ class TestClassifyType:
         assert geocoding._classify_type({"type": "postcode"}) == "zip"
 
     def test_landmark(self):
-        assert geocoding._classify_type({"class": "tourism", "type": "attraction"}) == "landmark"
+        assert (
+            geocoding._classify_type({"class": "tourism", "type": "attraction"})
+            == "landmark"
+        )
 
     def test_other(self):
-        assert geocoding._classify_type({"class": "highway", "type": "residential"}) == "other"
+        assert (
+            geocoding._classify_type({"class": "highway", "type": "residential"})
+            == "other"
+        )
 
 
 class TestResolveLocation:
-
     @pytest.mark.asyncio
     @patch("weather.services.geocoding.httpx.AsyncClient")
     @patch("weather.services.geocoding.settings.LOCATIONIQ_API_KEY", "fake-key")
@@ -102,7 +106,9 @@ class TestResolveLocation:
 
         # Verify postalcode param was used
         call_kwargs = mock_client.get.call_args
-        assert "postalcode" in call_kwargs.kwargs.get("params", call_kwargs[1].get("params", {}))
+        assert "postalcode" in call_kwargs.kwargs.get(
+            "params", call_kwargs[1].get("params", {})
+        )
 
     @pytest.mark.asyncio
     @patch("weather.services.geocoding.settings")
@@ -114,8 +120,8 @@ class TestResolveLocation:
 
 # ─── openweather ───────────────────────────────────────────
 
-class TestParseWeather:
 
+class TestParseWeather:
     def test_with_dt_timestamp(self):
         data = {
             "dt": 1712188800,  # 2024-04-04 00:00:00 UTC
@@ -163,7 +169,6 @@ SAMPLE_RECORDS = [
 
 
 class TestExports:
-
     def test_export_json(self):
         result = exports.export_json(SAMPLE_RECORDS)
         parsed = json.loads(result)
@@ -212,8 +217,8 @@ class TestExports:
 
 # ─── youtube ───────────────────────────────────────────────
 
-class TestYouTubeService:
 
+class TestYouTubeService:
     @patch("weather.services.youtube.settings")
     def test_no_api_key(self, mock_settings):
         mock_settings.YOUTUBE_API_KEY = ""
@@ -248,8 +253,8 @@ class TestYouTubeService:
 
 # ─── google_maps ───────────────────────────────────────────
 
-class TestGoogleMapsService:
 
+class TestGoogleMapsService:
     @patch("weather.services.google_maps.settings")
     def test_no_keys(self, mock_settings):
         mock_settings.GOOGLE_MAPS_API_KEY = ""

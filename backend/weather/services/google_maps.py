@@ -30,9 +30,7 @@ def get_map_data(lat: float, lon: float, location_name: str = "") -> dict:
         # ── Google Maps (paid) ──
         query = location_name if location_name else f"{lat},{lon}"
         result["embed_url"] = (
-            f"https://www.google.com/maps/embed/v1/place"
-            f"?key={google_key}"
-            f"&q={query}"
+            f"https://www.google.com/maps/embed/v1/place?key={google_key}&q={query}"
         )
         result["static_map_url"] = (
             f"https://maps.googleapis.com/maps/api/staticmap"

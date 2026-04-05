@@ -63,7 +63,7 @@ class WeatherRecordViewSet(viewsets.ModelViewSet):
             },
             request_only=True,
         )
-    ]
+    ],
 )
 @api_view(["POST"])
 def create_weather(request):
@@ -103,7 +103,9 @@ def create_weather(request):
     )
 
     # 3. Fetch current weather
-    weather_data = async_to_sync(openweather.get_current_weather)(location.latitude, location.longitude)
+    weather_data = async_to_sync(openweather.get_current_weather)(
+        location.latitude, location.longitude
+    )
     if not weather_data:
         return Response(
             {"error": True, "detail": "Failed to fetch weather data from API."},
@@ -141,12 +143,26 @@ def create_weather(request):
     summary="Get 5-Day Forecast",
     description="Retrieve a 5-day / 3-hour forecast either by a full `location_query`, existing `location_id` in the database, or raw `lat` & `lon` coordinates.",
     parameters=[
-        OpenApiParameter(name="location_query", description="City name, zip code, landmark, or coordinates", required=False, type=OpenApiTypes.STR),
-        OpenApiParameter(name="location_id", description="ID of a stored Location", required=False, type=OpenApiTypes.INT),
-        OpenApiParameter(name="lat", description="Latitude", required=False, type=OpenApiTypes.FLOAT),
-        OpenApiParameter(name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT),
+        OpenApiParameter(
+            name="location_query",
+            description="City name, zip code, landmark, or coordinates",
+            required=False,
+            type=OpenApiTypes.STR,
+        ),
+        OpenApiParameter(
+            name="location_id",
+            description="ID of a stored Location",
+            required=False,
+            type=OpenApiTypes.INT,
+        ),
+        OpenApiParameter(
+            name="lat", description="Latitude", required=False, type=OpenApiTypes.FLOAT
+        ),
+        OpenApiParameter(
+            name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT
+        ),
     ],
-    responses={200: OpenApiTypes.OBJECT}
+    responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["GET"])
 def forecast_view(request):
@@ -165,7 +181,10 @@ def forecast_view(request):
 
         if not geo:
             return Response(
-                {"error": True, "detail": f"Could not resolve location: '{location_query}'"},
+                {
+                    "error": True,
+                    "detail": f"Could not resolve location: '{location_query}'",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         lat, lon = geo["lat"], geo["lon"]
@@ -188,7 +207,10 @@ def forecast_view(request):
             )
     else:
         return Response(
-            {"error": True, "detail": "Provide location_query, location_id, or lat & lon."},
+            {
+                "error": True,
+                "detail": "Provide location_query, location_id, or lat & lon.",
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -209,9 +231,14 @@ def forecast_view(request):
     summary="Get Location Enrichment",
     description="Retrieve YouTube travel/weather videos and Google/Stadia Maps data for a stored location.",
     parameters=[
-        OpenApiParameter(name="location_id", description="ID of a stored Location", required=True, type=OpenApiTypes.INT),
+        OpenApiParameter(
+            name="location_id",
+            description="ID of a stored Location",
+            required=True,
+            type=OpenApiTypes.INT,
+        ),
     ],
-    responses={200: OpenApiTypes.OBJECT}
+    responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["GET"])
 def enrichment_view(request):
@@ -253,12 +280,20 @@ def enrichment_view(request):
     summary="Export Weather Data",
     description="Export weather records in various formats (json, csv, pdf, xml, md). Optionally filter by location_id.",
     parameters=[
-        OpenApiParameter(name="export_format", description="Format to export (json, csv, pdf, xml, md)", required=False, type=OpenApiTypes.STR),
-        OpenApiParameter(name="location_id", description="Optional Location ID to filter by", required=False, type=OpenApiTypes.INT),
+        OpenApiParameter(
+            name="export_format",
+            description="Format to export (json, csv, pdf, xml, md)",
+            required=False,
+            type=OpenApiTypes.STR,
+        ),
+        OpenApiParameter(
+            name="location_id",
+            description="Optional Location ID to filter by",
+            required=False,
+            type=OpenApiTypes.INT,
+        ),
     ],
-    responses={
-        200: OpenApiTypes.BINARY
-    }
+    responses={200: OpenApiTypes.BINARY},
 )
 @api_view(["GET"])
 def export_view(request):
@@ -278,13 +313,17 @@ def export_view(request):
 
     if fmt == "csv":
         generator = exports.stream_records_to_dicts(queryset)
-        response = StreamingHttpResponse(exports.stream_csv(generator), content_type="text/csv")
+        response = StreamingHttpResponse(
+            exports.stream_csv(generator), content_type="text/csv"
+        )
         response["Content-Disposition"] = 'attachment; filename="weather_data.csv"'
         return response
 
     elif fmt == "json":
         generator = exports.stream_records_to_dicts(queryset)
-        response = StreamingHttpResponse(exports.stream_json(generator), content_type="application/json")
+        response = StreamingHttpResponse(
+            exports.stream_json(generator), content_type="application/json"
+        )
         response["Content-Disposition"] = 'attachment; filename="weather_data.json"'
         return response
 
@@ -316,7 +355,12 @@ def export_view(request):
 @extend_schema(
     summary="AI Agent Query",
     description="Send a natural language message to the AI orchestrator to autonomously retrieve weather, forecasts, or YouTube videos.",
-    request={"application/json": {"type": "object", "properties": {"message": {"type": "string"}}}},
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {"message": {"type": "string"}},
+        }
+    },
     examples=[
         OpenApiExample(
             "Valid Request",
@@ -324,7 +368,7 @@ def export_view(request):
             request_only=True,
         )
     ],
-    responses={200: OpenApiTypes.OBJECT}
+    responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["POST"])
 def agent_query_view(request):

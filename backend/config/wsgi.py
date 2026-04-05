@@ -15,13 +15,14 @@ try:
     from pathlib import Path
 
     from dotenv import load_dotenv
+
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 except ImportError:
     pass
 
 if os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes"):
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 else:
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.prod")
 
 application = get_wsgi_application()

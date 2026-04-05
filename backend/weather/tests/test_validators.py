@@ -32,7 +32,9 @@ class TestValidateDateRange:
     def test_exceeds_365_days(self):
         today = timezone.now().date()
         with pytest.raises(serializers.ValidationError):
-            validate_date_range(today - timedelta(days=200), today + timedelta(days=200))
+            validate_date_range(
+                today - timedelta(days=200), today + timedelta(days=200)
+            )
 
     def test_exceeds_5_day_future(self):
         today = timezone.now().date()

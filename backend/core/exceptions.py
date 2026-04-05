@@ -5,6 +5,7 @@ from rest_framework.views import exception_handler
 
 def custom_exception_handler(exc, context):
     import traceback
+
     traceback.print_exc()
     """
     Wraps DRF's default exception handler to return a consistent
