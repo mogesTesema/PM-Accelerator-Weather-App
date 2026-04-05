@@ -1,0 +1,19 @@
+name: Backend CI Bypass
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["backend/**"]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["backend/**"]
+
+jobs:
+  CI:
+    # CRITICAL: This exact string must perfectly match the job name in backend-CI.yml 
+    # so that Github Branch Protection accepts the success ticket from either file.
+    name: CI Test Driven Development
+    runs-on: ubuntu-latest
+    steps:
+      - name: Safely bypass Backend CI
+        run: echo "No backend files changed. Safely bypassing the backend test suite to satisfy GitHub Branch Protection rules."
