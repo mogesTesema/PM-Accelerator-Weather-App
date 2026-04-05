@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci:
+  CI:
+    name: CI Test Driven Development
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -59,9 +60,9 @@ jobs:
       - name: Run tests with coverage
         run: uv run pytest --cov=weather --cov=core --cov-report=term-missing
 
-  cd:
-    name: Deploy to Render
-    needs: ci
+  CD:
+    name: CD  Deploy to Render
+    needs: CI
     runs-on: ubuntu-latest
     if: github.repository == 'mogesTesema/PM-Accelerator-Weather-App' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     steps:
