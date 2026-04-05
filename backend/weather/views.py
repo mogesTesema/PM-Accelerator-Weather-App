@@ -4,8 +4,8 @@ Weather app views — CRUD, forecast, enrichment, export, and agent query endpoi
 
 from datetime import date
 
+from asgiref.sync import async_to_sync
 from django.http import HttpResponse, StreamingHttpResponse
-from asgiref.sync import async_to_sync, sync_to_async
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,

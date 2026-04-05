@@ -2,7 +2,8 @@
 FROM python:3.13-slim AS base
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    DJANGO_SETTINGS_MODULE=config.settings.prod
 
 # ---- Builder Stage ----
 # Compiles and isolates dependencies without bloating the final image

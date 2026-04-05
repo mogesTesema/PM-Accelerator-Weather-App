@@ -7,8 +7,8 @@ import logging
 import re
 
 import httpx
-from django.conf import settings
 from asgiref.sync import sync_to_async
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 

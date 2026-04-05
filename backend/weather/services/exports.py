@@ -149,16 +149,16 @@ def stream_csv(records_generator):
     """ Yields CSV rows. """
     class Echo:
         def write(self, value): return value
-        
+
     try:
         first = next(records_generator)
     except StopIteration:
         return
-        
+
     writer = csv.DictWriter(Echo(), fieldnames=first.keys())
     yield writer.writeheader()
     yield writer.writerow(first)
-    
+
     for record in records_generator:
         yield writer.writerow(record)
 

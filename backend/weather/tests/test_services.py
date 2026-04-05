@@ -99,7 +99,7 @@ class TestResolveLocation:
         mock_client.get.return_value = mock_response
 
         await geocoding.resolve_location("90210")
-        
+
         # Verify postalcode param was used
         call_kwargs = mock_client.get.call_args
         assert "postalcode" in call_kwargs.kwargs.get("params", call_kwargs[1].get("params", {}))

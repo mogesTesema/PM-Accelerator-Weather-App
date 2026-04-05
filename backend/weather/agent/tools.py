@@ -3,6 +3,8 @@ Tool functions for the weather agent.
 The agent calls these to interact with services and the database.
 """
 
+from asgiref.sync import async_to_sync
+
 from weather.models import WeatherRecord
 from weather.services import geocoding, openweather, youtube
 
@@ -17,13 +19,13 @@ def get_weather(location_query: str) -> dict:
     Returns:
         Weather data dict or error message.
     """
-    geo = geocoding.resolve_location(location_query)
+    geo = async_to_sync(geocoding.resolve_location)(location_query)
     if not geo:
-        geo = geocoding.fuzzy_search(location_query)
+        geo = async_to_sync(geocoding.fuzzy_search)(location_query)
     if not geo:
         return {"error": f"Could not resolve location: '{location_query}'"}
 
-    weather = openweather.get_current_weather(geo["lat"], geo["lon"])
+    weather = async_to_sync(openweather.get_current_weather)(geo["lat"], geo["lon"])
     if not weather:
         return {"error": "Failed to fetch weather data."}
 
@@ -45,11 +47,11 @@ def get_forecast(location_query: str) -> dict:
     Returns:
         Forecast data or error message.
     """
-    geo = geocoding.resolve_location(location_query)
+    geo = async_to_sync(geocoding.resolve_location)(location_query)
     if not geo:
         return {"error": f"Could not resolve location: '{location_query}'"}
 
-    forecast = openweather.get_forecast(geo["lat"], geo["lon"])
+    forecast = async_to_sync(openweather.get_forecast)(geo["lat"], geo["lon"])
     if not forecast:
         return {"error": "Failed to fetch forecast data."}
 
@@ -70,9 +72,9 @@ def search_location(query: str) -> dict:
     Returns:
         Location details or error message.
     """
-    geo = geocoding.resolve_location(query)
+    geo = async_to_sync(geocoding.resolve_location)(query)
     if not geo:
-        geo = geocoding.fuzzy_search(query)
+        geo = async_to_sync(geocoding.fuzzy_search)(query)
     if not geo:
         return {"error": f"Could not resolve location: '{query}'"}
 
@@ -89,7 +91,7 @@ def get_videos(location_name: str) -> dict:
     Returns:
         List of video results.
     """
-    videos = youtube.search_videos(location_name)
+    videos = async_to_sync(youtube.search_videos)(location_name)
     return {"location": location_name, "video_count": len(videos), "videos": videos}
 
 
