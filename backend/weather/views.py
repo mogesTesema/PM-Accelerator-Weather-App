@@ -102,10 +102,40 @@ def create_weather(request):
         },
     )
 
-    # 3. Fetch current weather
-    weather_data = async_to_sync(openweather.get_current_weather)(
+    # 3. Fetch weather data for the date range
+    forecast_list = async_to_sync(openweather.get_forecast)(
         location.latitude, location.longitude
     )
+    weather_data = None
+
+    if forecast_list:
+        range_data = [
+            item for item in forecast_list
+            if date_start <= item["date"] <= date_end
+        ]
+        if range_data:
+            temps = [i["temperature"] for i in range_data if i["temperature"] is not None]
+            feels = [i["feels_like"] for i in range_data if i["feels_like"] is not None]
+            hums = [i["humidity"] for i in range_data if i["humidity"] is not None]
+            winds = [i["wind_speed"] for i in range_data if i["wind_speed"] is not None]
+            first_item = range_data[0]
+
+            weather_data = {
+                "date": date_start,
+                "temperature": round(sum(temps) / len(temps), 2) if temps else 0.0,
+                "feels_like": round(sum(feels) / len(feels), 2) if feels else None,
+                "humidity": int(sum(hums) / len(hums)) if hums else None,
+                "wind_speed": round(sum(winds) / len(winds), 2) if winds else None,
+                "description": first_item.get("description", ""),
+                "icon": first_item.get("icon", ""),
+            }
+
+    if not weather_data:
+        # Fallback to current weather if range is historical/unsupported
+        weather_data = async_to_sync(openweather.get_current_weather)(
+            location.latitude, location.longitude
+        )
+
     if not weather_data:
         return Response(
             {"error": True, "detail": "Failed to fetch weather data from API."},
