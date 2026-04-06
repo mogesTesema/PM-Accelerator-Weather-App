@@ -1,4 +1,4 @@
-name: Backend CD (Manual)
+name: Backend CD
 
 on:
   workflow_dispatch:
