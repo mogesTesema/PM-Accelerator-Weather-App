@@ -11,6 +11,21 @@ A production-grade, AI-powered weather intelligence system engineered for the **
 
 ---
 
+## 📑 Table of Contents
+
+- [Visuals](#visuals)
+- [Architectural Highlights & Features](#architectural-highlights--features)
+- [Tech Stack](#tech-stack)
+- [Local Setup & Installation](#local-setup--installation)
+- [API Endpoints & Usage](#api-endpoints--usage)
+- [Testing & CI/CD](#testing--cicd)
+- [Contributing Guidelines](#contributing-guidelines)
+- [License](#license)
+- [About](#about)
+
+---
+
+<a id="visuals"></a>
 ## 📸 Visuals
 
 *(Include an animated GIF or architectural diagram of your API workflow here)*
@@ -19,6 +34,7 @@ A production-grade, AI-powered weather intelligence system engineered for the **
 
 ---
 
+<a id="architectural-highlights--features"></a>
 ## 🏗️ Architectural Highlights & Features
 
 - **🤖 Autonomous LLM Orchestration:** Integrates the OpenAI Agent SDK to parse complex natural language queries, dynamically invoking distinct tools to return structured weather intelligence.
@@ -27,6 +43,7 @@ A production-grade, AI-powered weather intelligence system engineered for the **
 - **📄 Extensible Export System:** Includes a robust, custom abstraction for exporting weather records seamlessly into CSV, JSON, PDF, XML, and Markdown.
 - **⚙️ 100% Test Coverage & Automated CI/CD:** Protected by a smart GitHub Actions workflow separating CI and CD layers, strictly enforcing Pytest coverage and Ruff linting rules prior to Render deployment.
 
+<a id="tech-stack"></a>
 ## 🛠️ Tech Stack
 
 | Category         | Technology / Dependency |
@@ -39,6 +56,7 @@ A production-grade, AI-powered weather intelligence system engineered for the **
 
 ---
 
+<a id="local-setup--installation"></a>
 ## 🚀 Local Setup & Installation
 
 Getting the backend running locally takes less than a minute utilizing the `uv` package manager.
@@ -85,6 +103,7 @@ uv run manage.py runserver
 
 ---
 
+<a id="api-endpoints--usage"></a>
 ## 📖 API Endpoints & Usage
 
 This project automatically generates standard OpenAPI specifications using `drf-spectacular`. Once the server is running, you can view the fully interactive documentation:
@@ -106,6 +125,7 @@ curl -X POST http://127.0.0.1:8000/api/weather/records/ \
 
 ---
 
+<a id="testing--cicd"></a>
 ## 🧪 Testing & CI/CD
 
 The project strictly enforces linting rules and an automated testing suite using `pytest`.
@@ -125,6 +145,7 @@ A robust **GitHub Actions** CI/CD pipeline protects the `main` branch by enforci
 
 ---
 
+<a id="contributing-guidelines"></a>
 ## 🤝 Contributing Guidelines
 
 We welcome contributions! Please follow these steps to securely contribute to the codebase:
@@ -133,16 +154,18 @@ We welcome contributions! Please follow these steps to securely contribute to th
 3. Maintain 100% test coverage locally (`uv run pytest`).
 4. Push your branch and open a Pull Request against `main`.
 
-For more detailed rules, please see our [CONTRIBUTING.md](CONTRIBUTING.md) *(Placeholder)*.
+For more detailed rules, please see our [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ---
 
+<a id="license"></a>
 ## 📜 License
 
 This backend project is licensed under the **MIT License**. See the [LICENSE](../LICENSE) file in the root workspace directory for more details.
 
 ---
 
+<a id="about"></a>
 ## 🎓 About
 
 **Author:** Moges Tesema  
