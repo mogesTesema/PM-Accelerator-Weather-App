@@ -13,8 +13,8 @@ class TestLocationModel:
     """Tests for the Location model."""
 
     def test_str_representation(self):
-        loc = LocationFactory(name="Addis Ababa", latitude=9.02, longitude=38.75)
-        assert str(loc) == "Addis Ababa (9.02, 38.75)"
+        loc = LocationFactory(name=" Miami, Florida", latitude=9.02, longitude=38.75)
+        assert str(loc) == " Miami, Florida (9.02, 38.75)"
 
     def test_default_location_type(self):
         LocationFactory(location_type="")

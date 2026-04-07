@@ -110,11 +110,12 @@ def create_weather(request):
 
     if forecast_list:
         range_data = [
-            item for item in forecast_list
-            if date_start <= item["date"] <= date_end
+            item for item in forecast_list if date_start <= item["date"] <= date_end
         ]
         if range_data:
-            temps = [i["temperature"] for i in range_data if i["temperature"] is not None]
+            temps = [
+                i["temperature"] for i in range_data if i["temperature"] is not None
+            ]
             feels = [i["feels_like"] for i in range_data if i["feels_like"] is not None]
             hums = [i["humidity"] for i in range_data if i["humidity"] is not None]
             winds = [i["wind_speed"] for i in range_data if i["wind_speed"] is not None]
@@ -394,7 +395,7 @@ def export_view(request):
     examples=[
         OpenApiExample(
             "Valid Request",
-            value={"message": "What is the weather in Addis Ababa right now?"},
+            value={"message": "What is the weather in Miami, Florida right now?"},
             request_only=True,
         )
     ],
