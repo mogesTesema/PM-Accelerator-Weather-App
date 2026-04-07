@@ -30,16 +30,7 @@ A production-grade, AI-powered weather intelligence system engineered for the **
 - [License](#license)
 - [About](#about)
 
----
 
-<a id="visuals"></a>
-## 📸 Visuals
-
-*(Include an animated GIF or architectural diagram of your API workflow here)*
-
-![API Architecture / Demo Placeholder](https://via.placeholder.com/800x400.png?text=API+Architecture+Diagram+Placeholder)
-
----
 
 <a id="architectural-highlights--features"></a>
 ## 🏗️ Architectural Highlights & Features
