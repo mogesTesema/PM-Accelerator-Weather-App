@@ -172,7 +172,11 @@ def create_weather(request):
 # ──────────────────────────────────────────────
 @extend_schema(
     summary="Get 5-Day Forecast",
-    description="Retrieve a 5-day / 3-hour forecast either by a full `location_query`, existing `location_id` in the database, or raw `lat` & `lon` coordinates.",
+    description=(
+        "Retrieve a forecast for up to 5 days by `location_query`, "
+        "`location_id`, or raw `lat` & `lon` coordinates. "
+        "Use the `days` parameter to specify how many days (1–5, default 5)."
+    ),
     parameters=[
         OpenApiParameter(
             name="location_query",
@@ -192,14 +196,43 @@ def create_weather(request):
         OpenApiParameter(
             name="lon", description="Longitude", required=False, type=OpenApiTypes.FLOAT
         ),
+        OpenApiParameter(
+            name="days",
+            description="Number of forecast days (1–5, default 5)",
+            required=False,
+            type=OpenApiTypes.INT,
+        ),
     ],
     responses={200: OpenApiTypes.OBJECT},
 )
 @api_view(["GET"])
 def forecast_view(request):
     """
-    GET /api/weather/forecast/?location_query=... | location_id=... | lat=...&lon=...
+    GET /api/weather/forecast/?location_query=...&days=3
     """
+    # ── Validate days parameter ──
+    days_param = request.query_params.get("days", "5")
+    try:
+        days = int(days_param)
+    except (TypeError, ValueError):
+        return Response(
+            {"error": True, "detail": "days must be an integer."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if days < 1 or days > 5:
+        return Response(
+            {
+                "error": True,
+                "detail": (
+                    "Forecast is only available for up to 5 days. "
+                    "Please provide a value between 1 and 5."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # ── Resolve location ──
     location_query = request.query_params.get("location_query")
     location_id = request.query_params.get("location_id")
     lat = request.query_params.get("lat")
@@ -252,7 +285,18 @@ def forecast_view(request):
             status=status.HTTP_502_BAD_GATEWAY,
         )
 
-    return Response({"count": len(data), "forecast": data})
+    # ── Filter to requested number of days ──
+    seen_dates = set()
+    filtered = []
+    for item in data:
+        item_date = item.get("date")
+        if item_date not in seen_dates:
+            if len(seen_dates) >= days:
+                break
+            seen_dates.add(item_date)
+        filtered.append(item)
+
+    return Response({"days": days, "count": len(filtered), "forecast": filtered})
 
 
 # ──────────────────────────────────────────────

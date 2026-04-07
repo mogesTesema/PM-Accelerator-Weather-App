@@ -196,6 +196,16 @@ class TestCreateWeather:
 
 # ─── Forecast (mocked) ────────────────────────────────────
 
+# Multi-date forecast mock: 3 dates × 2 entries each = 6 items
+MOCK_FORECAST_MULTI_DAY = [
+    {"date": date.today(), "temperature": 20, "description": "clear"},
+    {"date": date.today(), "temperature": 21, "description": "clear"},
+    {"date": date.today() + timedelta(days=1), "temperature": 18, "description": "rain"},
+    {"date": date.today() + timedelta(days=1), "temperature": 17, "description": "rain"},
+    {"date": date.today() + timedelta(days=2), "temperature": 22, "description": "sunny"},
+    {"date": date.today() + timedelta(days=2), "temperature": 23, "description": "sunny"},
+]
+
 
 @pytest.mark.django_db
 class TestForecastView:
@@ -224,6 +234,65 @@ class TestForecastView:
     def test_forecast_api_failure(self, mock_fc, api_client):
         resp = api_client.get("/api/weather/forecast/", {"lat": "51.5", "lon": "-0.12"})
         assert resp.status_code == 502
+
+    # ── Days parameter tests ──
+
+    @patch(
+        "weather.views.openweather.get_forecast",
+        return_value=MOCK_FORECAST_MULTI_DAY,
+    )
+    def test_forecast_with_days_param(self, mock_fc, api_client):
+        """days=2 should only return entries for the first 2 unique dates."""
+        resp = api_client.get(
+            "/api/weather/forecast/",
+            {"lat": "51.5", "lon": "-0.12", "days": "2"},
+        )
+        assert resp.status_code == 200
+        assert resp.data["days"] == 2
+        # 2 dates × 2 entries each = 4 items
+        assert resp.data["count"] == 4
+
+    @patch(
+        "weather.views.openweather.get_forecast",
+        return_value=MOCK_FORECAST_MULTI_DAY,
+    )
+    def test_forecast_days_defaults_to_5(self, mock_fc, api_client):
+        """No days param should default to 5 and return all available data."""
+        resp = api_client.get(
+            "/api/weather/forecast/", {"lat": "51.5", "lon": "-0.12"}
+        )
+        assert resp.status_code == 200
+        assert resp.data["days"] == 5
+        # Only 3 unique dates exist, so all 6 items are returned
+        assert resp.data["count"] == 6
+
+    def test_forecast_days_exceeds_5(self, api_client):
+        """days=10 should return 400 with a clear error message."""
+        resp = api_client.get(
+            "/api/weather/forecast/",
+            {"lat": "51.5", "lon": "-0.12", "days": "10"},
+        )
+        assert resp.status_code == 400
+        assert "up to 5 days" in resp.data["detail"]
+
+    def test_forecast_days_zero_or_negative(self, api_client):
+        """days=0 should return 400."""
+        resp = api_client.get(
+            "/api/weather/forecast/",
+            {"lat": "51.5", "lon": "-0.12", "days": "0"},
+        )
+        assert resp.status_code == 400
+        assert "up to 5 days" in resp.data["detail"]
+
+    @patch("weather.views.geocoding.fuzzy_search", return_value=None)
+    @patch("weather.views.geocoding.resolve_location", return_value=None)
+    def test_forecast_location_not_found(self, mock_geo, mock_fuzzy, api_client):
+        """When both exact and fuzzy search fail, return 400."""
+        resp = api_client.get(
+            "/api/weather/forecast/", {"location_query": "ZZZZXXX"}
+        )
+        assert resp.status_code == 400
+        assert "Could not resolve location" in resp.data["detail"]
 
 
 # ─── Enrichment (mocked) ──────────────────────────────────
