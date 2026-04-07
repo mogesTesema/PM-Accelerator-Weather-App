@@ -46,6 +46,16 @@ The API has been successfully deployed and is available online. You can effortle
 
 - **🤖 Autonomous LLM Orchestration:** Integrates the OpenAI-compatible chat-completions API with function calling to parse complex natural language queries, dynamically invoking distinct tools to return structured weather intelligence. Supports multiple LLM backends (OpenAI, GitHub Models, Groq, DeepSeek).
 - **🔍 Semantic Fuzzy Location Matching (Pinecone):** Uses Pinecone's vector database with `llama-text-embed-v2` embeddings (1024-dim, cosine similarity) to semantically resolve ambiguous or alias-based queries — e.g., *"Big Apple"* → New York City, *"Iron Lady"* → Eiffel Tower, *"City of Light"* → Paris. Pre-seeded with 120 world capitals, major cities, and famous landmarks via a dedicated management command.
+
+```mermaid
+flowchart LR
+    A["User Query: 'Big Apple'"] --> B{"LocationIQ\n(Exact Geocoding)"}
+    B -- "✅ Found" --> D["lat/lon → OpenWeatherMap"]
+    B -- "❌ Not Found" --> C{"Pinecone\n(Semantic Search)"}
+    C -- "score ≥ 0.3" --> E["'New York City'\nlat=40.71, lon=-74.00"]
+    E --> D
+    C -- "score < 0.3" --> F["❌ Location not found"]
+```
 - **🌍 Extensive Third-Party APIs:** Orchestrates data from **OpenWeatherMap**, **LocationIQ**, **Google Maps**, **Stadia Maps**, and **YouTube** to provide a rich, multimedia-enriched weather context.
 - **📄 Extensible Export System:** Includes a robust, custom abstraction for exporting weather records seamlessly into CSV, JSON, PDF, XML, and Markdown.
 - **📅 5-Day Forecast with Day-Range Filtering:** Supports up to 5-day forecasts with a customizable `days` parameter (1–5), returning clear error messages for invalid ranges.
