@@ -51,11 +51,12 @@ The API has been successfully deployed and is available online. You can effortle
 <a id="architectural-highlights--features"></a>
 ## 🏗️ Architectural Highlights & Features
 
-- **🤖 Autonomous LLM Orchestration:** Integrates the OpenAI Agent SDK to parse complex natural language queries, dynamically invoking distinct tools to return structured weather intelligence.
+- **🤖 Autonomous LLM Orchestration:** Integrates the OpenAI-compatible chat-completions API with function calling to parse complex natural language queries, dynamically invoking distinct tools to return structured weather intelligence. Supports multiple LLM backends (OpenAI, GitHub Models, Groq, DeepSeek).
 - **🔍 Vector Database Integration (Pinecone):** Leverages embeddings for fuzzy location matching, instantly resolving natural language searches (e.g., *"The Great Pyramids"*) into explicit coordinates.
-- **🌍 Extensive Third-Party APIs:** Orchestrates data from **OpenWeatherMap**, **LocationIQ**, **Google Maps**, and **YouTube** to provide a rich, multimedia-enriched weather context.
+- **🌍 Extensive Third-Party APIs:** Orchestrates data from **OpenWeatherMap**, **LocationIQ**, **Google Maps**, **Stadia Maps**, and **YouTube** to provide a rich, multimedia-enriched weather context.
 - **📄 Extensible Export System:** Includes a robust, custom abstraction for exporting weather records seamlessly into CSV, JSON, PDF, XML, and Markdown.
-- **⚙️ 100% Test Coverage & Automated CI/CD:** Protected by a smart GitHub Actions workflow separating CI and CD layers, strictly enforcing Pytest coverage and Ruff linting rules prior to Render deployment.
+- **📅 5-Day Forecast with Day-Range Filtering:** Supports up to 5-day forecasts with a customizable `days` parameter (1–5), returning clear error messages for invalid ranges.
+- **⚙️ Automated CI/CD:** Protected by a smart GitHub Actions workflow separating CI and CD layers, strictly enforcing Pytest and Ruff linting rules prior to Render deployment.
 
 <a id="tech-stack"></a>
 ## 🛠️ Tech Stack
@@ -64,8 +65,8 @@ The API has been successfully deployed and is available online. You can effortle
 |------------------|-------------------------|
 | **Core**         | Python 3.13, Django 6.0, Django REST Framework, PostgreSQL |
 | **Package Mgr**  | `uv` (Ultra-fast Python package installer) |
-| **AI / Data**    | `openai-agents`, Pinecone |
-| **Integrations** | `httpx`, `requests` (OpenWeather, Google Maps, YouTube) |
+| **AI / LLM**     | OpenAI-compatible chat-completions (OpenAI, GitHub Models, Groq, DeepSeek), Pinecone |
+| **Integrations** | `httpx`, `requests` (OpenWeather, Google Maps, Stadia Maps, YouTube, LocationIQ) |
 | **Dev Tools**    | Pytest, Ruff, Factory-Boy, Gunicorn, Docker |
 
 ---
@@ -90,20 +91,28 @@ uv sync
 ```
 
 ### 2. Environment Configuration
-Create a `.env` file in the `backend/` directory. Use `.env.example` as a template.
+Create a `.env` file in the `backend/` directory with the following variables:
 ```env
 # Core Django Config
 DJANGO_SETTINGS_MODULE=config.settings.dev
-SECRET_KEY=your-secret-key-here
+DJANGO_SECRET_KEY=your-secret-key-here
 DATABASE_URL=postgres://user:password@localhost:5432/pma-weather-db
 
-# API Integrations
-OPENAI_API_KEY=your_openai_key
-PINECONE_API_KEY=your_pinecone_key
-OPENWEATHER_API_KEY=your_openweather_key
-GOOGLE_MAPS_API_KEY=your_google_maps_key
-YOUTUBE_API_KEY=your_youtube_key
+# External API Keys
+OPEN_WEATHER_API_KEY=your_openweather_key
 LOCATIONIQ_API_KEY=your_locationiq_key
+YOUTUBE_API_KEY=your_youtube_key
+GOOGLE_MAPS_API_KEY=your_google_maps_key
+GOOGLE_API_KEY=your_google_api_key
+STADIA_MAPS_API_KEY=your_stadia_maps_key
+PINECONE_API_KEY=your_pinecone_key
+
+# LLM Provider (at least one required for AI agent)
+OPENAI_API_KEY=your_openai_key
+# Or use free/budget alternatives:
+# GITHUB_OPENAI__API_TOKEN=your_github_token
+# GROQ_API_KEY=your_groq_key
+# DEEPSEEK_API_KEY=your_deepseek_key
 ```
 
 ### 3. Migrate & Run
@@ -128,20 +137,33 @@ This project automatically generates standard OpenAPI specifications using `drf-
 
 ### 💻 Local Development
 Once the server is running locally, you can view the fully interactive documentation:
-- **Swagger UI:** `http://127.0.0.1:8000/api/schema/swagger-ui/`
-- **Redoc:** `http://127.0.0.1:8000/api/schema/redoc/`
+- **Swagger UI:** `http://127.0.0.1:8000/api/docs/`
+- **ReDoc:** `http://127.0.0.1:8000/api/redoc/`
 
 ### Core Endpoints
-- `GET /api/weather/records/` - List all validated weather queries.
-- `POST /api/weather/records/` - Create a new weather record (triggers external API orchestration).
-- `GET /api/weather/locations/` - CRUD endpoints for managed location entities.
-- `GET /api/weather/records/{id}/export/?format=pdf` - Export specific records to targeted formats.
 
-*(Example query to the AI Orchestrator)*
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/weather/locations/` | List all locations |
+| `POST` | `/api/weather/locations/` | Create a new location |
+| `GET` | `/api/weather/records/` | List all weather records |
+| `POST` | `/api/weather/records/` | Create a weather record (manual) |
+| `POST` | `/api/weather/create/` | Create weather record via location query + date range |
+| `GET` | `/api/weather/forecast/` | Get up to 5-day forecast (`?location_query=...&days=3`) |
+| `GET` | `/api/weather/enrichment/` | Get YouTube videos & Google Maps data for a location |
+| `GET` | `/api/weather/export/` | Export weather data (`?export_format=json\|csv\|pdf\|xml\|md`) |
+| `POST` | `/api/weather/agent/query/` | AI agent natural language query |
+
+*(Example: AI Orchestrator query)*
 ```bash
-curl -X POST http://127.0.0.1:8000/api/weather/records/ \
+curl -X POST http://127.0.0.1:8000/api/weather/agent/query/ \
      -H "Content-Type: application/json" \
-     -d '{"location_query": "What is the weather like near the Eiffel Tower?"}'
+     -d '{"message": "What is the weather like near the Eiffel Tower?"}'
+```
+
+*(Example: 3-day forecast)*
+```bash
+curl "http://127.0.0.1:8000/api/weather/forecast/?location_query=London&days=3"
 ```
 
 ---
@@ -174,7 +196,7 @@ A robust **GitHub Actions** CI/CD pipeline protects the `main` branch by enforci
 We welcome contributions! Please follow these steps to securely contribute to the codebase:
 1. Fork the repository and create a new feature branch (`git checkout -b feature/awesome-feature`).
 2. Make your targeted changes, ensuring you pass strict formatting requirements (`uv run ruff check .`).
-3. Maintain 100% test coverage locally (`uv run pytest`).
+3. Maintain test coverage locally (`uv run pytest`).
 4. Push your branch and open a Pull Request against `main`.
 
 For more detailed rules, please see our [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -184,7 +206,7 @@ For more detailed rules, please see our [CONTRIBUTING.md](CONTRIBUTING.md).
 <a id="license"></a>
 ## 📜 License
 
-This backend project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file in the root directory for more details.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
 
 ---
 
@@ -192,4 +214,4 @@ This backend project is licensed under the **MIT License**. See the [LICENSE](LI
 ## 🎓 About
 
 **Author:** Moges Tesema  
-**Project Objective:** This system represents the technical capstone and backend engineering requirement for the **PM Accelerator AI Engineering** assessment. It bridges the gap between scalable web infrastructure (Django) and modern Generative AI tooling architectures.
+**Project Objective:** This system represents the technical capstone and backend engineering requirement for the **PM Accelerator AI Engineering Intern** assessment. It bridges the gap between scalable web infrastructure (Django) and modern Generative AI tooling architectures.
