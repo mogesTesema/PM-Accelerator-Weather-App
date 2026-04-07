@@ -127,7 +127,7 @@ REST_FRAMEWORK = {
 # ──────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
     "TITLE": "PM Accelerator Weather API",
-    "DESCRIPTION": "AI-powered weather intelligence platform with CRUD, forecast, enrichment, export, and agent query endpoints.",
+    "DESCRIPTION": "PM Accelerator Mission Statement \nTo accelerate the transition into product management and empower the next generation of tech leaders through hands-on, practical experience",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
