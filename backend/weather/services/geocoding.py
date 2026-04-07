@@ -84,46 +84,13 @@ def fuzzy_search(query: str) -> dict | None:
     """
     Use Pinecone vector similarity search to resolve ambiguous
     or landmark-based location queries.
-    Returns {"name": ..., "lat": ..., "lon": ...} or None.
+    Returns {"name": ..., "lat": ..., "lon": ..., "country": ..., "type": ...}
+    or None.
     """
-    api_key = settings.PINECONE_API_KEY
-    if not api_key:
-        logger.info("PINECONE_API_KEY not set — skipping fuzzy search.")
-        return None
+    from weather.services.vector_search import fuzzy_location_search
 
-    try:
-        from pinecone import Pinecone
+    return fuzzy_location_search(query)
 
-        pc = Pinecone(api_key=api_key)
-
-        # Check if index exists; if not, skip
-        indexes = pc.list_indexes()
-        if not indexes or not any(idx.name == "locations" for idx in indexes):
-            logger.info("Pinecone 'locations' index not found — skipping fuzzy search.")
-            return None
-
-        index = pc.Index("locations")
-        # For a real implementation, we'd embed the query first.
-        # For now, we do a metadata-based search as a placeholder.
-        results = index.query(
-            vector=[0.0] * 1536,  # placeholder embedding
-            top_k=1,
-            include_metadata=True,
-            filter={"name": {"$eq": query}},
-        )
-
-        if results and results.matches:
-            match = results.matches[0]
-            metadata = match.metadata
-            return {
-                "name": metadata.get("name", query),
-                "lat": metadata.get("lat"),
-                "lon": metadata.get("lon"),
-            }
-        return None
-    except Exception as e:
-        logger.error("Pinecone fuzzy search failed: %s", e)
-        return None
 
 
 def _extract_country(result: dict) -> str:

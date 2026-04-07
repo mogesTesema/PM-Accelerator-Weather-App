@@ -140,6 +140,11 @@ OPEN_WEATHER_API_KEY = os.getenv("OPEN_WEATHER_API_KEY", "")
 LOCATIONIQ_API_KEY = os.getenv("LOCATIONIQ_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "pma-weather-app-vector-db")
+PINECONE_HOST = os.getenv(
+    "PINECONE_HOST",
+    "pma-weather-app-vector-db-9odfdu8.svc.aped-4627-b74a.pinecone.io",
+)
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 STADIA_MAPS_API_KEY = os.getenv("STADIA_MAPS_API_KEY", "")

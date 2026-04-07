@@ -39,20 +39,13 @@ The API has been successfully deployed and is available online. You can effortle
 
 ---
 
-<a id="visuals"></a>
-## 📸 Visuals
 
-*(Include an animated GIF or architectural diagram of your API workflow here)*
-
-![API Architecture / Demo Placeholder](https://via.placeholder.com/800x400.png?text=API+Architecture+Diagram+Placeholder)
-
----
 
 <a id="architectural-highlights--features"></a>
 ## 🏗️ Architectural Highlights & Features
 
 - **🤖 Autonomous LLM Orchestration:** Integrates the OpenAI-compatible chat-completions API with function calling to parse complex natural language queries, dynamically invoking distinct tools to return structured weather intelligence. Supports multiple LLM backends (OpenAI, GitHub Models, Groq, DeepSeek).
-- **🔍 Vector Database Integration (Pinecone):** Leverages embeddings for fuzzy location matching, instantly resolving natural language searches (e.g., *"The Great Pyramids"*) into explicit coordinates.
+- **🔍 Semantic Fuzzy Location Matching (Pinecone):** Uses Pinecone's vector database with `llama-text-embed-v2` embeddings (1024-dim, cosine similarity) to semantically resolve ambiguous or alias-based queries — e.g., *"Big Apple"* → New York City, *"Iron Lady"* → Eiffel Tower, *"City of Light"* → Paris. Pre-seeded with 120 world capitals, major cities, and famous landmarks via a dedicated management command.
 - **🌍 Extensive Third-Party APIs:** Orchestrates data from **OpenWeatherMap**, **LocationIQ**, **Google Maps**, **Stadia Maps**, and **YouTube** to provide a rich, multimedia-enriched weather context.
 - **📄 Extensible Export System:** Includes a robust, custom abstraction for exporting weather records seamlessly into CSV, JSON, PDF, XML, and Markdown.
 - **📅 5-Day Forecast with Day-Range Filtering:** Supports up to 5-day forecasts with a customizable `days` parameter (1–5), returning clear error messages for invalid ranges.
@@ -65,7 +58,8 @@ The API has been successfully deployed and is available online. You can effortle
 |------------------|-------------------------|
 | **Core**         | Python 3.13, Django 6.0, Django REST Framework, PostgreSQL |
 | **Package Mgr**  | `uv` (Ultra-fast Python package installer) |
-| **AI / LLM**     | OpenAI-compatible chat-completions (OpenAI, GitHub Models, Groq, DeepSeek), Pinecone |
+| **AI / LLM**     | OpenAI-compatible chat-completions (OpenAI, GitHub Models, Groq, DeepSeek) |
+| **Vector DB**    | Pinecone Serverless (Free Tier), `llama-text-embed-v2` via Pinecone Inference API |
 | **Integrations** | `httpx`, `requests` (OpenWeather, Google Maps, Stadia Maps, YouTube, LocationIQ) |
 | **Dev Tools**    | Pytest, Ruff, Factory-Boy, Gunicorn, Docker |
 
@@ -106,6 +100,8 @@ GOOGLE_MAPS_API_KEY=your_google_maps_key
 GOOGLE_API_KEY=your_google_api_key
 STADIA_MAPS_API_KEY=your_stadia_maps_key
 PINECONE_API_KEY=your_pinecone_key
+PINECONE_INDEX_NAME=pma-weather-app-vector-db
+PINECONE_HOST=your_pinecone_index_host
 
 # LLM Provider (at least one required for AI agent)
 OPENAI_API_KEY=your_openai_key
@@ -115,10 +111,13 @@ OPENAI_API_KEY=your_openai_key
 # DEEPSEEK_API_KEY=your_deepseek_key
 ```
 
-### 3. Migrate & Run
+### 3. Migrate, Seed & Run
 ```bash
 # Run database migrations
 uv run manage.py migrate
+
+# Seed the Pinecone vector index with 120 world locations (one-time setup)
+uv run manage.py seed_locations
 
 # Start the development server
 uv run manage.py runserver

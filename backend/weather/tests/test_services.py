@@ -274,3 +274,87 @@ class TestGoogleMapsService:
         # When GOOGLE_MAPS_API_KEY is empty (falsy), it should check STADIA
         # The mock settings should work with getattr
         assert "directions_url" in result
+
+
+# ─── vector_search ─────────────────────────────────────────
+
+
+class TestVectorSearch:
+    @patch("weather.services.vector_search.settings")
+    def test_no_api_key(self, mock_settings):
+        """Returns None when PINECONE_API_KEY is empty."""
+        mock_settings.PINECONE_API_KEY = ""
+        from weather.services.vector_search import fuzzy_location_search
+
+        result = fuzzy_location_search("Eiffel Tower")
+        assert result is None
+
+    @patch("weather.services.vector_search._get_client")
+    def test_match_found(self, mock_get_client):
+        """Returns location dict when a match is above the threshold."""
+        mock_pc = MagicMock()
+        mock_index = MagicMock()
+
+        # Mock embedding response
+        mock_embedding = MagicMock()
+        mock_embedding.values = [0.1] * 1024
+        mock_pc.inference.embed.return_value = [mock_embedding]
+
+        # Mock query response with a good score
+        mock_match = MagicMock()
+        mock_match.score = 0.92
+        mock_match.metadata = {
+            "name": "Eiffel Tower",
+            "lat": 48.8584,
+            "lon": 2.2945,
+            "country": "FR",
+            "type": "landmark",
+        }
+        mock_index.query.return_value = MagicMock(matches=[mock_match])
+
+        mock_get_client.return_value = (mock_pc, mock_index)
+
+        from weather.services.vector_search import fuzzy_location_search
+
+        result = fuzzy_location_search("Iron Lady Paris")
+        assert result is not None
+        assert result["name"] == "Eiffel Tower"
+        assert result["lat"] == 48.8584
+        assert result["country"] == "FR"
+
+    @patch("weather.services.vector_search._get_client")
+    def test_below_threshold(self, mock_get_client):
+        """Returns None when the best match score is below threshold."""
+        mock_pc = MagicMock()
+        mock_index = MagicMock()
+
+        mock_embedding = MagicMock()
+        mock_embedding.values = [0.1] * 1024
+        mock_pc.inference.embed.return_value = [mock_embedding]
+
+        mock_match = MagicMock()
+        mock_match.score = 0.2  # Below 0.5 threshold
+        mock_match.metadata = {"name": "Random Place", "lat": 0, "lon": 0}
+        mock_index.query.return_value = MagicMock(matches=[mock_match])
+
+        mock_get_client.return_value = (mock_pc, mock_index)
+
+        from weather.services.vector_search import fuzzy_location_search
+
+        result = fuzzy_location_search("ZZZZXXX nonsense")
+        assert result is None
+
+    @patch("weather.services.vector_search._get_client")
+    def test_api_error_graceful(self, mock_get_client):
+        """Returns None on Pinecone exception (graceful degradation)."""
+        mock_pc = MagicMock()
+        mock_index = MagicMock()
+
+        mock_pc.inference.embed.side_effect = Exception("API unreachable")
+        mock_get_client.return_value = (mock_pc, mock_index)
+
+        from weather.services.vector_search import fuzzy_location_search
+
+        result = fuzzy_location_search("London")
+        assert result is None
+
