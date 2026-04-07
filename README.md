@@ -37,16 +37,7 @@ The API has been successfully deployed and is available online. You can effortle
 - [License](#license)
 - [About](#about)
 
----
 
-<a id="visuals"></a>
-## 📸 Visuals
-
-*(Include an animated GIF or architectural diagram of your API workflow here)*
-
-![API Architecture / Demo Placeholder](https://via.placeholder.com/800x400.png?text=API+Architecture+Diagram+Placeholder)
-
----
 
 <a id="architectural-highlights--features"></a>
 ## 🏗️ Architectural Highlights & Features
