@@ -37,17 +37,28 @@ def get_weather(location_query: str) -> dict:
     }
 
 
-def get_forecast(location_query: str) -> dict:
+def get_forecast(location_query: str, days: int = 5) -> dict:
     """
-    Get 5-day forecast for a location.
+    Get up to 5-day forecast for a location.
 
     Args:
         location_query: A city name, zip code, landmark, or coordinates.
+        days: Number of forecast days to return (1–5). Capped at 5.
 
     Returns:
         Forecast data or error message.
     """
+    # Cap days at 5 (agent should not error, just cap)
+    note = None
+    if days > 5:
+        note = "Note: Forecast is only available for up to 5 days. Showing 5-day forecast."
+        days = 5
+    if days < 1:
+        days = 1
+
     geo = async_to_sync(geocoding.resolve_location)(location_query)
+    if not geo:
+        geo = async_to_sync(geocoding.fuzzy_search)(location_query)
     if not geo:
         return {"error": f"Could not resolve location: '{location_query}'"}
 
@@ -55,11 +66,26 @@ def get_forecast(location_query: str) -> dict:
     if not forecast:
         return {"error": "Failed to fetch forecast data."}
 
-    return {
+    # Filter to requested number of unique days
+    seen_dates = set()
+    filtered = []
+    for item in forecast:
+        item_date = item.get("date")
+        if item_date not in seen_dates:
+            if len(seen_dates) >= days:
+                break
+            seen_dates.add(item_date)
+        filtered.append(item)
+
+    result = {
         "location": geo["name"],
-        "forecast_count": len(forecast),
-        "forecast": forecast,
+        "days": days,
+        "forecast_count": len(filtered),
+        "forecast": filtered,
     }
+    if note:
+        result["note"] = note
+    return result
 
 
 def search_location(query: str) -> dict:

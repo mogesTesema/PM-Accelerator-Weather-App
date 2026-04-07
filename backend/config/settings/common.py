@@ -127,7 +127,7 @@ REST_FRAMEWORK = {
 # ──────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
     "TITLE": "PM Accelerator Weather API",
-    "DESCRIPTION": "PM Accelerator Mission Statement \nTo accelerate the transition into product management and empower the next generation of tech leaders through hands-on, practical experience",
+    "DESCRIPTION": "PM Accelerator Mission Statement: 🎯 To accelerate the transition into product management and empower the next generation of tech leaders through hands-on, practical experience",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }

@@ -77,14 +77,18 @@ TOOL_DEFS = [
         "type": "function",
         "function": {
             "name": "get_forecast",
-            "description": "Get a 5-day / 3-hour forecast for a location.",
+            "description": "Get a forecast for a location (up to 5 days). If the user asks for more than 5 days, cap at 5.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "location_query": {
                         "type": "string",
                         "description": "City name, zip code, landmark, or coordinates.",
-                    }
+                    },
+                    "days": {
+                        "type": "integer",
+                        "description": "Number of forecast days (1-5, default 5). Maximum is 5.",
+                    },
                 },
                 "required": ["location_query"],
             },
