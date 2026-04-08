@@ -39,7 +39,7 @@ JAZZMIN_SETTINGS = {
     #############
     "show_sidebar": True,
     "navigation_expanded": True,
-    
+
     # Hide these apps when generating side menu
     "hide_apps": [],
     "hide_models": [],
@@ -53,7 +53,7 @@ JAZZMIN_SETTINGS = {
         "weather.Location": "fas fa-map-marker-alt",
         "weather.SearchHistory": "fas fa-history",
     },
-    
+
     # Custom CSS file
     "custom_css": "css/admin_custom.css",
 }
