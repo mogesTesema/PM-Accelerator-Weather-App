@@ -1,0 +1,74 @@
+/* backend/static/css/admin_custom.css */
+
+/* Custom weather-themed gradient for the login page */
+body.login {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+    background-size: cover;
+    background-color: #1e3c72;
+}
+
+body.login .login-box {
+    margin-top: 10vh;
+}
+
+/* Glassmorphism card for login */
+body.login .card {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    color: white;
+}
+
+body.login .card-header, body.login .card-body {
+    background: transparent !important;
+    color: white !important;
+}
+
+body.login .login-box-msg {
+    color: #e0e0e0 !important;
+    font-weight: 500;
+}
+
+/* Make inputs look good on dark gradient */
+body.login .form-control {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    border: none;
+    border-radius: 6px;
+}
+
+/* Button style */
+body.login .btn-primary {
+    background: linear-gradient(45deg, #0cebeb, #20e3b2, #29ffc6);
+    border: none;
+    color: #1e3c72;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 6px;
+}
+
+body.login .btn-primary:hover {
+    background: linear-gradient(45deg, #29ffc6, #20e3b2, #0cebeb);
+    color: #1a1a1a;
+}
+
+/* General tweaks to brand in sidebar */
+.brand-link {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+.brand-link .brand-image {
+    opacity: 0.9;
+}
+
+/* Update accent colors */
+.accent-info .btn-link, 
+.accent-info a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn),
+.accent-info .nav-treeview>.nav-item>.nav-link.active, 
+.accent-info .nav-treeview>.nav-item>.nav-link.active:hover {
+    color: #20e3b2 !important;
+}

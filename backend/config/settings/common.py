@@ -26,6 +26,7 @@ SECRET_KEY = os.getenv(
 # Application definition
 # ──────────────────────────────────────────────
 INSTALLED_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -164,3 +165,10 @@ GITHUB_OPENAI_API_TOKEN = os.getenv("GITHUB_OPENAI__API_TOKEN", "")
 GITHUB_OPENAI_BASE_URL = os.getenv(
     "GITHUB_OPENAI_BASE_URL", "https://models.inference.ai.azure.com"
 )
+
+# ──────────────────────────────────────────────
+# Admin UI Customization (Jazzmin)
+# ──────────────────────────────────────────────
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+from .admin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS  # noqa: E402, F401
