@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PM Accelerator Weather App | Moges Tesema</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary: #3b82f6;
@@ -183,7 +186,8 @@
             position: relative;
         }
 
-        .mission-statement::before, .mission-statement::after {
+        .mission-statement::before,
+        .mission-statement::after {
             content: '"';
             font-family: 'Outfit', sans-serif;
             color: rgba(59, 130, 246, 0.3);
@@ -240,7 +244,7 @@
             opacity: 1;
         }
 
-        .doc-card > * {
+        .doc-card>* {
             z-index: 1;
             position: relative;
         }
@@ -296,8 +300,15 @@
 
         /* Animations */
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .animate-up {
@@ -305,18 +316,38 @@
             opacity: 0;
         }
 
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
 
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            .mission-statement { font-size: 1.2rem; }
-            .glass-panel { padding: 1.5rem; }
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .mission-statement {
+                font-size: 1.2rem;
+            }
+
+            .glass-panel {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="ambient-glow"></div>
     <div class="ambient-glow-2"></div>
@@ -332,20 +363,21 @@
 
     <main>
         <h1 class="animate-up delay-1">PM Accelerator Weather API</h1>
-        
+
         <div class="system-features animate-up delay-2">
-            <p>An AI-powered weather intelligence API built with Django. Core features include:</p>
+            <p>An AI-powered weather API built with Django. Core features include:</p>
             <ul class="feature-list">
-                <li>✨ Scalable RESTful endpoints for real-time weather and 5-day forecasts</li>
-                <li>🔄 Full CRUD operations and multi-format data exports</li>
-                <li>🧠 Autonomous LLM orchestration for natural language queries</li>
+                <li>Scalable RESTful endpoints for real-time weather and 5-day forecasts</li>
+                <li>Full CRUD operations and multi-format data exports</li>
+                <li>Autonomous LLM orchestration for natural language queries</li>
             </ul>
         </div>
 
         <div class="glass-panel animate-up delay-3">
             <div class="mission-title">Organization Mission</div>
             <div class="mission-statement">
-                To accelerate the transition into product management and empower the next generation of tech leaders through hands-on, practical experience.
+                To accelerate the transition into product management and empower the next generation of tech leaders
+                through hands-on, practical experience.
             </div>
         </div>
 
@@ -353,14 +385,16 @@
             <a href="/api/docs/" target="_blank" rel="noopener noreferrer" class="doc-card">
                 <div class="doc-icon">⚡</div>
                 <div class="doc-title">Interactive API Docs</div>
-                <div class="doc-desc">Test and validate API endpoints dynamically using Swagger UI interface. Execute requests directly from the browser.</div>
+                <div class="doc-desc">Test and validate API endpoints dynamically using Swagger UI interface. Execute
+                    requests directly from the browser.</div>
                 <div class="doc-action">Launch Swagger UI</div>
             </a>
-            
+
             <a href="/api/redoc/" target="_blank" rel="noopener noreferrer" class="doc-card">
                 <div class="doc-icon">📖</div>
                 <div class="doc-title">Schema Reference</div>
-                <div class="doc-desc">Deep-dive into comprehensive, structurally formatted OpenAPI specifications. Perfect for technical implementation integration.</div>
+                <div class="doc-desc">Deep-dive into comprehensive, structurally formatted OpenAPI specifications.
+                    Perfect for technical implementation integration.</div>
                 <div class="doc-action">View ReDoc Schema</div>
             </a>
         </div>
@@ -370,4 +404,5 @@
         // Optional JS for subtle interactions, currently purely CSS-driven
     </script>
 </body>
+
 </html>
