@@ -20,6 +20,9 @@ COPY pyproject.toml uv.lock ./
 # Install production dependencies into a virtual environment in /app/.venv
 RUN uv sync --frozen --no-dev --no-install-project
 
+# Patch jazzmin's broken bootstrap sourcemap comment directly in the virtual environment
+RUN sed -i 's/\/\/# sourceMappingURL=bootstrap.bundle.min.js.map//g' /app/.venv/lib/python3.13/site-packages/jazzmin/static/vendor/bootstrap/js/bootstrap.bundle.min.js
+
 # ---- Final Runtime Stage ----
 # This image contains ONLY the app and its dependencies—no build tools, pip, or uv.
 FROM base AS final
