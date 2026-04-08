@@ -51,7 +51,9 @@ def get_forecast(location_query: str, days: int = 5) -> dict:
     # Cap days at 5 (agent should not error, just cap)
     note = None
     if days > 5:
-        note = "Note: Forecast is only available for up to 5 days. Showing 5-day forecast."
+        note = (
+            "Note: Forecast is only available for up to 5 days. Showing 5-day forecast."
+        )
         days = 5
     if days < 1:
         days = 1
