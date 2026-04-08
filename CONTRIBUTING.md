@@ -1,6 +1,6 @@
-# Contributing to Intelligent Weather Orchestrator
+# Contributing to PMA Weather API
 
-First of all, thank you for considering contributing to the **Intelligent Weather Orchestrator**! We welcome community contributions, whether they are bug fixes, feature enhancements, or documentation improvements.
+First of all, thank you for considering contributing to the **PMA Weather API**! We welcome community contributions, whether they are bug fixes, feature enhancements, or documentation improvements.
 
 This document provides a set of guidelines to ensure the contribution process is smooth and standard across all developers.
 
