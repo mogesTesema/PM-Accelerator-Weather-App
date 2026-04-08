@@ -1,4 +1,4 @@
-# 🌤️ Intelligent Weather Orchestrator (Backend)
+# 🌤️ PMA Weather API (Backend)
 
 [![Backend CI](https://github.com/mogesTesema/PM-Accelerator-Weather-App/actions/workflows/backend-CI.yml/badge.svg)](https://github.com/mogesTesema/PM-Accelerator-Weather-App/actions/workflows/backend-CI.yml)
 [![Backend CD](https://github.com/mogesTesema/PM-Accelerator-Weather-App/actions/workflows/backend-CD.yml/badge.svg)](https://github.com/mogesTesema/PM-Accelerator-Weather-App/actions/workflows/backend-CD.yml)
