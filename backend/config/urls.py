@@ -6,7 +6,10 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from config.views import HomeView
+
 urlpatterns = [
+    path("", HomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("api/", include("weather.urls")),
     # OpenAPI schema & docs

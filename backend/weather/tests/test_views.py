@@ -180,7 +180,9 @@ class TestCreateWeather:
     @patch("weather.views.openweather.get_current_weather", return_value=None)
     @patch("weather.views.openweather.get_forecast", return_value=None)
     @patch("weather.views.geocoding.resolve_location", return_value=MOCK_GEO_RESULT)
-    def test_weather_api_failure(self, mock_geo, mock_forecast, mock_weather, api_client):
+    def test_weather_api_failure(
+        self, mock_geo, mock_forecast, mock_weather, api_client
+    ):
         today = timezone.now().date()
         resp = api_client.post(
             "/api/weather/create/",
@@ -200,10 +202,26 @@ class TestCreateWeather:
 MOCK_FORECAST_MULTI_DAY = [
     {"date": date.today(), "temperature": 20, "description": "clear"},
     {"date": date.today(), "temperature": 21, "description": "clear"},
-    {"date": date.today() + timedelta(days=1), "temperature": 18, "description": "rain"},
-    {"date": date.today() + timedelta(days=1), "temperature": 17, "description": "rain"},
-    {"date": date.today() + timedelta(days=2), "temperature": 22, "description": "sunny"},
-    {"date": date.today() + timedelta(days=2), "temperature": 23, "description": "sunny"},
+    {
+        "date": date.today() + timedelta(days=1),
+        "temperature": 18,
+        "description": "rain",
+    },
+    {
+        "date": date.today() + timedelta(days=1),
+        "temperature": 17,
+        "description": "rain",
+    },
+    {
+        "date": date.today() + timedelta(days=2),
+        "temperature": 22,
+        "description": "sunny",
+    },
+    {
+        "date": date.today() + timedelta(days=2),
+        "temperature": 23,
+        "description": "sunny",
+    },
 ]
 
 
@@ -258,9 +276,7 @@ class TestForecastView:
     )
     def test_forecast_days_defaults_to_5(self, mock_fc, api_client):
         """No days param should default to 5 and return all available data."""
-        resp = api_client.get(
-            "/api/weather/forecast/", {"lat": "51.5", "lon": "-0.12"}
-        )
+        resp = api_client.get("/api/weather/forecast/", {"lat": "51.5", "lon": "-0.12"})
         assert resp.status_code == 200
         assert resp.data["days"] == 5
         # Only 3 unique dates exist, so all 6 items are returned
@@ -288,9 +304,7 @@ class TestForecastView:
     @patch("weather.views.geocoding.resolve_location", return_value=None)
     def test_forecast_location_not_found(self, mock_geo, mock_fuzzy, api_client):
         """When both exact and fuzzy search fail, return 400."""
-        resp = api_client.get(
-            "/api/weather/forecast/", {"location_query": "ZZZZXXX"}
-        )
+        resp = api_client.get("/api/weather/forecast/", {"location_query": "ZZZZXXX"})
         assert resp.status_code == 400
         assert "Could not resolve location" in resp.data["detail"]
 

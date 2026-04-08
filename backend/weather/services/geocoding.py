@@ -92,7 +92,6 @@ def fuzzy_search(query: str) -> dict | None:
     return fuzzy_location_search(query)
 
 
-
 def _extract_country(result: dict) -> str:
     """Extract country from LocationIQ result address breakdown."""
     address = result.get("address", {})

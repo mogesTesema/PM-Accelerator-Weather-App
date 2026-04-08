@@ -357,4 +357,3 @@ class TestVectorSearch:
 
         result = fuzzy_location_search("London")
         assert result is None
-
